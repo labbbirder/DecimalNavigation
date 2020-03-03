@@ -46,12 +46,12 @@ public class NavDemo : MonoBehaviour
         {
             Gizmos.DrawLine(path[i - 1].ToVector3() / navMesh.precision, path[i].ToVector3() / navMesh.precision);
         }
-        Gizmos.color = Color.yellow;
-        var npath = navigationSystem.npath;
-        for (int i = 1; i < npath.Count; i++)
-        {
-            Gizmos.DrawLine(npath[i - 1].ToVector3() / navMesh.precision, npath[i].ToVector3() / navMesh.precision);
-        }
+        //Gizmos.color = Color.yellow;
+        //var npath = navigationSystem.npath;
+        //for (int i = 1; i < npath.Count; i++)
+        //{
+        //    Gizmos.DrawLine(npath[i - 1].ToVector3() / navMesh.precision, npath[i].ToVector3() / navMesh.precision);
+        //}
     }
     private void Update()
     {

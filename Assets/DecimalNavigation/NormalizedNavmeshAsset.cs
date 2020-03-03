@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEditor;
+//using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 using DecimalNavigation;
@@ -11,7 +11,6 @@ using UnityEngine.SceneManagement;
 
 public class NormalizedNavmeshAsset : ScriptableObject
 {
-    static string outDir = "Assets/NavMeshResource";
 
     [Range(1, 100000)]
     public int precision = 100;
@@ -27,7 +26,7 @@ public class NormalizedNavmeshAsset : ScriptableObject
     /// <param name="vertices"></param>
     /// <param name="triangles"></param>
     [ContextMenu("重新计算")]
-    void RenormalizeNavMesh()
+    public void RenormalizeNavMesh()
     {
         var rawMesh = NavMesh.CalculateTriangulation();
         Vector3[] vertices = rawMesh.vertices;
@@ -97,16 +96,5 @@ public class NormalizedNavmeshAsset : ScriptableObject
 
     //    }
     //}
-    [MenuItem("Tools/生成标准化寻路网格")]
-    public static void CreateNavMesh()
-    {
-        var inst = CreateInstance<NormalizedNavmeshAsset>();
-        inst.RenormalizeNavMesh();
-        if (!Directory.Exists(outDir))
-        {
-            Directory.CreateDirectory(outDir);
-        }
-        AssetDatabase.CreateAsset(inst, outDir + "/" + SceneManager.GetActiveScene().name + ".asset");
-    }
 
 }
