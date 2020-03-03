@@ -22,19 +22,19 @@ public class NavDemo : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         if (navigationSystem == null) return;
-        Gizmos.color = new Color32(255, 255, 255, 64);
+        Gizmos.color = new Color32(255, 255, 255, 32);
         var vts = navMesh.vertices;
         var ids = navMesh.indices;
         for (int i = 0; i < ids.Length; i += 3)
         {
-            Gizmos.DrawLine(vts[ids[i + 0]].toVector3() / navMesh.precision, vts[ids[i + 1]].toVector3() / navMesh.precision);
-            Gizmos.DrawLine(vts[ids[i + 0]].toVector3() / navMesh.precision, vts[ids[i + 2]].toVector3() / navMesh.precision);
-            Gizmos.DrawLine(vts[ids[i + 1]].toVector3() / navMesh.precision, vts[ids[i + 2]].toVector3() / navMesh.precision);
+            Gizmos.DrawLine(vts[ids[i + 0]].ToVector3() / navMesh.precision, vts[ids[i + 1]].ToVector3() / navMesh.precision);
+            Gizmos.DrawLine(vts[ids[i + 0]].ToVector3() / navMesh.precision, vts[ids[i + 2]].ToVector3() / navMesh.precision);
+            Gizmos.DrawLine(vts[ids[i + 1]].ToVector3() / navMesh.precision, vts[ids[i + 2]].ToVector3() / navMesh.precision);
         }
         Gizmos.color = Color.green;
         for (int i = 0; i < navigationSystem.edges.Length; i += 2)
         {
-            Gizmos.DrawLine(vts[navigationSystem.edges[i + 0]].toVector3() / navMesh.precision, vts[navigationSystem.edges[i + 1]].toVector3() / navMesh.precision);
+            Gizmos.DrawLine(vts[navigationSystem.edges[i + 0]].ToVector3() / navMesh.precision, vts[navigationSystem.edges[i + 1]].ToVector3() / navMesh.precision);
         }
     }
 
@@ -44,7 +44,13 @@ public class NavDemo : MonoBehaviour
         Gizmos.color = Color.blue;
         for (int i = 1; i < path.Count; i++)
         {
-            Gizmos.DrawLine(path[i - 1].toVector3() / navMesh.precision, path[i].toVector3() / navMesh.precision);
+            Gizmos.DrawLine(path[i - 1].ToVector3() / navMesh.precision, path[i].ToVector3() / navMesh.precision);
+        }
+        Gizmos.color = Color.yellow;
+        var npath = navigationSystem.npath;
+        for (int i = 1; i < npath.Count; i++)
+        {
+            Gizmos.DrawLine(npath[i - 1].ToVector3() / navMesh.precision, npath[i].ToVector3() / navMesh.precision);
         }
     }
     private void Update()

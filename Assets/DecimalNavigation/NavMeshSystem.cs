@@ -1,4 +1,5 @@
-﻿using System;
+﻿//author: bbbirder
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -9,11 +10,18 @@ namespace DecimalNavigation
 
     class FixedMath
     {
+#pragma warning disable
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe static int cob(float v)
         {
             return -~(int)(*(uint*)&v << 2 >> 25);
         }
+#pragma warning restore
+        /// <summary>
+        /// 整数平方根
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         public static long Sqrt(long n)
         {
             if (n <= 0) return 0;
@@ -249,7 +257,7 @@ namespace DecimalNavigation
         {
             return "Vector3:" + x + "," + y + "," + z;
         }
-        public Vector3 toVector3()
+        public Vector3 ToVector3()
         {
             return new Vector3(x, y, z);
         }
@@ -334,9 +342,9 @@ namespace DecimalNavigation
             return FixedMath.IsInTriangle_XZ(A, B, C, p);
         }
 
-        public Vector3 toVector3()
+        public Vector3 ToVector3()
         {
-            return center.toVector3();
+            return center.ToVector3();
         }
     }
 
@@ -439,16 +447,21 @@ namespace DecimalNavigation
         Point3D[] GetSharedPoints(int a, int b, Point3D eye)
         {
             var lst = new List<int>(3);
-            for (int i = a * 3; i < a * 3 + 3; i++)
+            var a3 = a * 3;
+            var b3 = b * 3;
+            for (int i = a3; i < a3 + 3; i++)
             {
-                for (int j = b * 3; j < b * 3 + 3; j++)
+                for (int j = b3; j < b3 + 3; j++)
                 {
                     if (indices[i] == indices[j])
                     {
                         lst.Add(indices[i]);
+                        break;
                     }
                 }
             }
+            var e = indices[a3] ^ indices[a3 + 1] ^ indices[a3 + 2] ^ lst[0] ^ lst[1];
+            eye = vertices[e];
             var l = vertices[lst[0]];
             var r = vertices[lst[1]];
             if (Point2D.Cross_XZ(l - eye, r - eye) < 0)
@@ -496,7 +509,7 @@ namespace DecimalNavigation
         #region AStar-Core
         List<AStarNode> openList = new List<AStarNode>();
         List<AStarNode> closeList = new List<AStarNode>();
-        List<AStarNode> npath = new List<AStarNode>(32);
+        public List<AStarNode> npath = new List<AStarNode>(32);
 
         public List<AStarNode> AStarPathSearch(AStarNode nodeFrom, AStarNode nodeTo)
         {
@@ -559,6 +572,8 @@ namespace DecimalNavigation
         {
             var ifrom = -1;
             var ito = -1;
+
+            //TODO: out of mesh
             if (!IsPointInMesh(pfrom, out ifrom))
             {
                 Debug.LogError("start point out of mesh!");
@@ -575,7 +590,7 @@ namespace DecimalNavigation
             //CornerProbe(npath, pfrom, pto);
             //OptimizePath(path);
 
-            /* start probe corners */
+            /* start of probe corners */
             {
                 path.Clear();
                 bool isNewEye = true;
@@ -603,14 +618,25 @@ namespace DecimalNavigation
                         //    path.RemoveRange(eyeIdx, path.Count - eyeIdx);
                         //}
 
-                        path.Add(e);
+                        //if (i == npath.Count - 1)
+                        //{
+                        //    continue;
+                        //}
+
+                        //ignore if in TRIANGLE_FAN topology.
                         if (np[0].Equals(e) || np[1].Equals(e))
                         {
                             continue;
                         }
+                        path.Add(e);
                         //np = GetOtherPoints(zpath[i].index, e);
                         l = np[0] - e;
                         r = np[1] - e;
+                        //avoid start-point-in-line issue
+                        if (Point2D.Cross_XZ(l, r) == 0)
+                        {
+                            continue;
+                        }
                         isNewEye = false;
                         continue;
                     }
@@ -626,23 +652,25 @@ namespace DecimalNavigation
                         r = nr;
                         ri = i;
                     }
-                    if (Point2D.Cross_XZ(r, nl) >= 0)// nl over right,find a corner
+                    if (Point2D.Cross_XZ(r, nl) > 0)// nl over right,find a corner
                     {
                         e = e + r;
-                        i = ri+1;
+                        i = ri ;
                         isNewEye = true;
                         continue;
                     }
-                    if (Point2D.Cross_XZ(nr, l) >=0)// nr over left,find a corner
+                    if (Point2D.Cross_XZ(nr, l) > 0)// nr over left,find a corner
                     {
                         e = e + l;
-                        i = li+1;
+                        i = li ;
                         isNewEye = true;
                         continue;
                     }
                 }
                 path.Add(pto);
             }
+            /* end of probe corners */
+
             return path;
         }
 
