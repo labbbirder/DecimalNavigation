@@ -55,14 +55,14 @@ public class NavDemo : MonoBehaviour
     }
     private void Update()
     {
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButtonDown(0))
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit))
             {
                 var p = hit.point;
-                path = navigationSystem.CalculatePath(new Point3D(transform.position * navMesh.precision), new Point3D(p * navMesh.precision));
+                path = navigationSystem.CalculatePath(new Point3D(transform.position * navMesh.precision), new Point3D(p * navMesh.precision),enableRidgeCutting:true);
             }
         }
     }

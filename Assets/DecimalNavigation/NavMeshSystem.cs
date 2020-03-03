@@ -232,6 +232,14 @@ namespace DecimalNavigation
         {
             return new Point3D(p.x / m, p.y / m, p.z / m);
         }
+        public static Point3D operator *(Point3D p, long m)
+        {
+            return new Point3D(p.x * m, p.y * m, p.z * m);
+        }
+        public static Point3D operator /(Point3D p, long m)
+        {
+            return new Point3D(p.x / m, p.y / m, p.z / m);
+        }
         public static Point3D operator *(int m, Point3D p)
         {
             return p * m;
@@ -568,11 +576,18 @@ namespace DecimalNavigation
         #endregion
 
         List<Point3D> path = new List<Point3D>();
-        public List<Point3D> CalculatePath(Point3D pfrom, Point3D pto)
+        /// <summary>
+        /// 计算路径
+        /// </summary>
+        /// <param name="pfrom">出发地</param>
+        /// <param name="pto">目的地</param>
+        /// <param name="ridgeCut">是否开启背脊切割（额外考虑高度信息）</param>
+        /// <param name="cornerProbe">是否开启拐角探测（优化的路径）</param>
+        /// <returns>折线路径点</returns>
+        public List<Point3D> CalculatePath(Point3D pfrom, Point3D pto, bool enableRidgeCutting = false, bool enableCornerProbing = true)
         {
             var ifrom = -1;
             var ito = -1;
-
             //TODO: out of mesh
             if (!IsPointInMesh(pfrom, out ifrom))
             {
@@ -587,10 +602,16 @@ namespace DecimalNavigation
             var nfrom = nodes[ifrom / 3];
             var nto = nodes[ito / 3];
             var npath = AStarPathSearch(nfrom, nto);
+            var crossPath = null as List<Point3D[]>;
+            if (enableRidgeCutting)
+            {
+                crossPath = new List<Point3D[]>(8);
+            }
             //CornerProbe(npath, pfrom, pto);
             //OptimizePath(path);
 
             /* start of probe corners */
+            if (enableCornerProbing)
             {
                 path.Clear();
                 bool isNewEye = true;
@@ -599,6 +620,7 @@ namespace DecimalNavigation
                 e = pfrom;
                 l = e;
                 r = e;
+
                 var li = 0;
                 var ri = 0;
                 //var curnode = zpath[0];
@@ -610,26 +632,27 @@ namespace DecimalNavigation
                     else
                         np = GetSharedPoints(npath[i].index, npath[i + 1].index, e);
 
+                    if (enableRidgeCutting)
+                    {
+                        crossPath.Add(np);
+                    }
                     if (isNewEye)
                     {
-                        //if (path.Contains(e))
-                        //{
-                        //    var eyeIdx = path.IndexOf(e);
-                        //    path.RemoveRange(eyeIdx, path.Count - eyeIdx);
-                        //}
-
-                        //if (i == npath.Count - 1)
-                        //{
-                        //    continue;
-                        //}
-
-                        //ignore if in TRIANGLE_FAN topology.
+                        //ignore if in TRIANGLE_FAN list.
                         if (np[0].Equals(e) || np[1].Equals(e))
                         {
                             continue;
                         }
+
+                        if (enableRidgeCutting)
+                            if (crossPath.Count > 0 && path.Count > 0)
+                            {
+                                ApplyRidgeCutting(path, path[path.Count - 1], e, crossPath);
+                                crossPath.Clear();
+                                crossPath.Add(np);
+                            }
                         path.Add(e);
-                        //np = GetOtherPoints(zpath[i].index, e);
+
                         l = np[0] - e;
                         r = np[1] - e;
                         //avoid start-point-in-line issue
@@ -642,31 +665,45 @@ namespace DecimalNavigation
                     }
                     nl = np[0] - e;
                     nr = np[1] - e;
-                    if (Point2D.Cross_XZ(l, nl) >= 0 && Point2D.Cross_XZ(nl, r) >= 0)
+
+                    var c_l_nl = Point2D.Cross_XZ(l, nl);
+                    var c_nl_r = Point2D.Cross_XZ(nl, r);
+                    var c_l_nr = Point2D.Cross_XZ(l, nr);
+                    var c_nr_r = Point2D.Cross_XZ(nr, r);
+
+                    if (c_l_nl >= 0 && c_nl_r >= 0)
                     {
                         l = nl;
                         li = i;
                     }
-                    if (Point2D.Cross_XZ(l, nr) >= 0 && Point2D.Cross_XZ(nr, r) >= 0)
+                    if (c_l_nr >= 0 && c_nr_r >= 0)
                     {
                         r = nr;
                         ri = i;
                     }
-                    if (Point2D.Cross_XZ(r, nl) > 0)// nl over right,find a corner
+
+                    if (c_nl_r < 0)// nl over right,find a corner
                     {
                         e = e + r;
-                        i = ri ;
+                        i = ri;
                         isNewEye = true;
                         continue;
                     }
-                    if (Point2D.Cross_XZ(nr, l) > 0)// nr over left,find a corner
+                    if (c_l_nr < 0)// nr over left,find a corner
                     {
                         e = e + l;
-                        i = li ;
+                        i = li;
                         isNewEye = true;
                         continue;
                     }
+
                 }
+                if (enableRidgeCutting)
+                    if (crossPath.Count > 0 && path.Count > 0)
+                    {
+                        ApplyRidgeCutting(path, path[path.Count - 1], pto,crossPath);
+                        crossPath.Clear();
+                    }
                 path.Add(pto);
             }
             /* end of probe corners */
@@ -674,19 +711,37 @@ namespace DecimalNavigation
             return path;
         }
 
-        //void CornerProbe(List<AStarNode> npath, Point3D pfrom, Point3D pto)
-        //void OptimizePath(List<Point3D> zpath)
-        //{
-        //    for (int i = zpath.Count - 3; i >= 0; i -= 3)
-        //    {
-        //        if (i < 0) break;
-        //        if (IsLineInsideMesh(zpath[i + 2], zpath[i]))
-        //        {
-        //            Debug.Log("rmv path point");
-        //            zpath.RemoveAt(i + 1);
-        //        }
-        //    }
-        //}
+
+        void ApplyRidgeCutting(List<Point3D> path, Point3D pfrom, Point3D pto, List<Point3D[]> crossPath)
+        {
+            /*
+                b
+             c  +  d
+                a
+             */
+            var a = pfrom;
+            var b = pto;
+            if (a.Equals(b)) return;
+            for (int i = 0; i < crossPath.Count; i++)
+            {
+                var c = crossPath[i][0];
+                var d = crossPath[i][1];
+                if (!FixedMath.IsLineCross(c.xz, d.xz, a.xz, b.xz)) continue;
+                var cab = Point2D.Cross_XZ(c - a, b - a);
+                var bad = Point2D.Cross_XZ(b - a, d - a);
+                var bcd = Point2D.Cross_XZ(b - c, d - c);
+                var dca = Point2D.Cross_XZ(d - c, a - c);
+
+                if (bcd + dca == 0) continue;
+                //var warp_ratio = dca / (bcd + dca);
+                //var weft_ratio = cab / (bad + cab);
+
+                var xz = a + (b - a) * dca / (bcd + dca);
+                var y = c.y + (d.y - c.y) * cab / (bad + cab);
+                path.Add(new Point3D(xz.x, y, xz.z));
+                Debug.Log("cut");
+            }
+        }
 
         //public AStarNode ImageStartNode(Point3D p)
         //{

@@ -12,7 +12,7 @@ using UnityEngine.SceneManagement;
 public class NormalizedNavmeshAsset : ScriptableObject
 {
 
-    [Range(1, 100000)]
+    [Range(1, 10000)]
     public int precision = 100;
     [SerializeField]
     public Point3D[] vertices;
