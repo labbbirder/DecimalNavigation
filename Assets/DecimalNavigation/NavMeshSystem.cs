@@ -739,7 +739,6 @@ namespace DecimalNavigation
                 var xz = a + (b - a) * dca / (bcd + dca);
                 var y = c.y + (d.y - c.y) * cab / (bad + cab);
                 path.Add(new Point3D(xz.x, y, xz.z));
-                Debug.Log("cut");
             }
         }
 

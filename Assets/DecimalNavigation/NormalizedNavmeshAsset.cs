@@ -8,11 +8,14 @@ using UnityEngine;
 using UnityEngine.AI;
 using DecimalNavigation;
 using UnityEngine.SceneManagement;
-
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 public class NormalizedNavmeshAsset : ScriptableObject
 {
 
-    [Range(1, 10000)]
+    public static string outDir = "Assets/NavMeshResource";
+    [Range(1, 1000)]
     public int precision = 100;
     [SerializeField]
     public Point3D[] vertices;
@@ -84,11 +87,20 @@ public class NormalizedNavmeshAsset : ScriptableObject
         //    oil.Add(li.ia);
         //    oil.Add(li.ib);
         //}
+
         this.vertices = ovl.ToArray();
         this.indices = oil.ToArray();
     }
-    
-   
+
+    public static NormalizedNavmeshAsset GetInstanceOfCurrentScene()
+    {
+#if UNITY_EDITOR
+        return AssetDatabase.LoadAssetAtPath<NormalizedNavmeshAsset>(outDir + "/" + SceneManager.GetActiveScene().name + ".asset");
+        //return AssetData
+#else
+        return null;
+#endif
+    }
     //private int[] calculateEdges()
     //{
     //    for (int i = 0; i < ; i++)
