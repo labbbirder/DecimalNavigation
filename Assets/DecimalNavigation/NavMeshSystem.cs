@@ -714,9 +714,9 @@ namespace DecimalNavigation
                 result = result
             };
             job.Schedule().Complete();
-            //var arr = result.ToArray();
+            var arr = result.ToArray();
             result.Dispose();
-            return null;
+            return arr;
         }
 
         void ApplyRidgeCutting(List<Point3D> path, Point3D pfrom, Point3D pto, List<Point3D[]> crossPath)

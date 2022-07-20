@@ -40,22 +40,7 @@ public class NavDemo : MonoBehaviour
                 var p = hit.point;
 
 
-                var max = 100;
-                Stopwatch watch = new Stopwatch();
-                watch.Start();
-                for (int i = 0; i < max; i++)
-                {
-                    unityAgent.CalculatePath(p, unityAgent.path);
-                }
-                print($"unityAgent:{watch.ElapsedMilliseconds}ms");
-
-                watch.Restart();
-                for (int i = 0; i < max; i++)
-                {
-                    agent.SetDestination(new Point3D(p * agent.precision));
-                }
-                print($"decimalAgent:{watch.ElapsedMilliseconds}ms");
-
+                unityAgent.CalculatePath(p, unityAgent.path);
                 path = agent.path;
             }
 
