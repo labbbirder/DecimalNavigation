@@ -4,55 +4,31 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using DecimalNavigation;
+using System.Diagnostics;
+
 public class NavDemo : MonoBehaviour
 {
-    //AStarSystem system;
     DecNavAgent agent;
-    //public int prec = 100;
-    //public Mesh mesh;
-    //AStarSystem ast;
+    NavMeshAgent unityAgent;
     //// Start is called before the first frame update
     void Start()
     {
         agent = FindObjectOfType<DecNavAgent>();
+        unityAgent = FindObjectOfType<NavMeshAgent>();
         //navigationSystem = new NavigationSystem(navMesh);
     }
-    //List<Point3D> path;
+    public Point3D[] path;
 
-    //private void OnDrawGizmosSelected()
-    //{
-    //    if (navigationSystem == null) return;
-    //    Gizmos.color = new Color32(255, 255, 255, 32);
-    //    var vts = navMesh.vertices;
-    //    var ids = navMesh.indices;
-    //    for (int i = 0; i < ids.Length; i += 3)
-    //    {
-    //        Gizmos.DrawLine(vts[ids[i + 0]].ToVector3() / navMesh.precision, vts[ids[i + 1]].ToVector3() / navMesh.precision);
-    //        Gizmos.DrawLine(vts[ids[i + 0]].ToVector3() / navMesh.precision, vts[ids[i + 2]].ToVector3() / navMesh.precision);
-    //        Gizmos.DrawLine(vts[ids[i + 1]].ToVector3() / navMesh.precision, vts[ids[i + 2]].ToVector3() / navMesh.precision);
-    //    }
-    //    Gizmos.color = Color.green;
-    //    for (int i = 0; i < navigationSystem.edges.Length; i += 2)
-    //    {
-    //        Gizmos.DrawLine(vts[navigationSystem.edges[i + 0]].ToVector3() / navMesh.precision, vts[navigationSystem.edges[i + 1]].ToVector3() / navMesh.precision);
-    //    }
-    //}
 
-    //private void OnDrawGizmos()
-    //{
-    //    if (null == path) return;
-    //    Gizmos.color = Color.blue;
-    //    for (int i = 1; i < path.Count; i++)
-    //    {
-    //        Gizmos.DrawLine(path[i - 1].ToVector3() / navMesh.precision, path[i].ToVector3() / navMesh.precision);
-    //    }
-    //    //Gizmos.color = Color.yellow;
-    //    //var npath = navigationSystem.npath;
-    //    //for (int i = 1; i < npath.Count; i++)
-    //    //{
-    //    //    Gizmos.DrawLine(npath[i - 1].ToVector3() / navMesh.precision, npath[i].ToVector3() / navMesh.precision);
-    //    //}
-    //}
+    private void OnDrawGizmos()
+    {
+        if (null == path) return;
+        Gizmos.color = Color.blue;
+        for (int i = 1; i < path.Length; i++)
+        {
+            Gizmos.DrawLine(path[i - 1].ToVector3() / agent.precision, path[i].ToVector3() / agent.precision);
+        }
+    }
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
@@ -62,9 +38,27 @@ public class NavDemo : MonoBehaviour
             if (Physics.Raycast(ray, out hit))
             {
                 var p = hit.point;
-                agent.SetDestination(new Point3D(p * agent.precision));
-                //path = navigationSystem.CalculatePath(new Point3D(transform.position * navMesh.precision), new Point3D(p * navMesh.precision),enableRidgeCutting:true);
+
+
+                var max = 100;
+                Stopwatch watch = new Stopwatch();
+                watch.Start();
+                for (int i = 0; i < max; i++)
+                {
+                    unityAgent.CalculatePath(p, unityAgent.path);
+                }
+                print($"unityAgent:{watch.ElapsedMilliseconds}ms");
+
+                watch.Restart();
+                for (int i = 0; i < max; i++)
+                {
+                    agent.SetDestination(new Point3D(p * agent.precision));
+                }
+                print($"decimalAgent:{watch.ElapsedMilliseconds}ms");
+
+                path = agent.path;
             }
+
         }
         if (Input.GetMouseButtonDown(1))
         {
@@ -74,7 +68,6 @@ public class NavDemo : MonoBehaviour
             {
                 var p = hit.point;
                 agent.SetLocation(new Point3D(p * agent.precision));
-                //path = navigationSystem.CalculatePath(new Point3D(transform.position * navMesh.precision), new Point3D(p * navMesh.precision),enableRidgeCutting:true);
             }
         }
     }

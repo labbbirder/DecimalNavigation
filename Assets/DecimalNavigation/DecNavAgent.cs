@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
+
 namespace DecimalNavigation
 {
 
@@ -30,7 +32,7 @@ namespace DecimalNavigation
         /// 逻辑层的当前位置
         /// </summary>
         public Point3D localtion { get; private set; }
-        public List<Point3D> path { get; private set; }
+        public Point3D[] path { get; private set; }
         private int coveredLength;
         // Start is called before the first frame update
         void Awake()
@@ -42,7 +44,10 @@ namespace DecimalNavigation
         {
             destination = dest;
             coveredLength = 0;
-            path = manager.system.CalculatePath(localtion, destination, enableRidgeCutting, enableCornerProbing);
+            Profiler.BeginSample("my");
+            path =
+                manager.system.CalculatePath(localtion, destination, enableRidgeCutting, enableCornerProbing);
+            Profiler.EndSample();
         }
 
         public void SetLocation(Point3D loc)
@@ -59,8 +64,8 @@ namespace DecimalNavigation
         {
             coveredLength += speed / FramesPerSecond;
             long len = 0;
-            if (path?.Count >= 2)
-                for (int i = 1; i < path.Count; i++)
+            if (path?.Length >= 2)
+                for (int i = 1; i < path.Length; i++)
                 {
                     var secLen = (path[i] - path[i - 1]).magnitude;
                     if (len + secLen > coveredLength)
