@@ -9,13 +9,13 @@ using System.Diagnostics;
 public class NavDemo : MonoBehaviour
 {
     DecNavAgent agent;
-    NavMeshAgent unityAgent;
     //// Start is called before the first frame update
     void Start()
     {
         agent = FindObjectOfType<DecNavAgent>();
-        unityAgent = FindObjectOfType<NavMeshAgent>();
-        //navigationSystem = new NavigationSystem(navMesh);
+        agent.SetLocation(new Point3D(
+            new Vector3(-0.699999988f, 0.0839999989f, 2.43000007f) * agent.precision
+        ));
     }
     public Point3D[] path;
 
@@ -40,7 +40,8 @@ public class NavDemo : MonoBehaviour
                 var p = hit.point;
 
 
-                unityAgent.CalculatePath(p, unityAgent.path);
+                agent.SetDestination(new Point3D(p * agent.precision));
+
                 path = agent.path;
             }
 
