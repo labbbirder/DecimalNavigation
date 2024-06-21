@@ -2,7 +2,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using FixMath.NET;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -14,31 +17,6 @@ namespace DecimalNavigation
 
     class FixedMath
     {
-#pragma warning disable
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe static int cob(float v)
-        {
-            return -~(int)(*(uint*)&v << 2 >> 25);
-        }
-#pragma warning restore
-        /// <summary>
-        /// 快速整数平方根
-        /// </summary>
-        /// <param name="n"></param>
-        /// <returns></returns>
-        public static long Sqrt(long n)
-        {
-            if (n <= 0) return 0;
-
-            long x = 2 << cob(n) / 2;
-            //int x = 15;
-            //while (-~x * -~x < n || ~-x * ~-x > n)
-            while (x * x > n)
-            {
-                x = (x + n / x) >> 1;
-            }
-            return x;
-        }
         /// <summary>
         /// 判断线是否相交
         /// </summary>
@@ -56,8 +34,8 @@ namespace DecimalNavigation
             //var miny2 = Math.Min(c.y, d.y);
             //if(ma)
             //UnityEngine.Debug.Log(Point2D.Cross(a - c, b - c) + "," + Point2D.Cross(a - d, b - d));
-            return Math.Sign(Point2D.Cross(a - c, b - c)) * Math.Sign(Point2D.Cross(a - d, b - d)) < 0 &&
-            Math.Sign(Point2D.Cross(c - a, d - a)) * Math.Sign(Point2D.Cross(c - b, d - b)) < 0;
+            return Fix64.Sign(Point2D.Cross(a - c, b - c)) * Fix64.Sign(Point2D.Cross(a - d, b - d)) < 0 &&
+            Fix64.Sign(Point2D.Cross(c - a, d - a)) * Fix64.Sign(Point2D.Cross(c - b, d - b)) < 0;
         }
 
 
@@ -77,15 +55,15 @@ namespace DecimalNavigation
             var pc = c - p;
 
             if (
-                (pa.x > 0 && pb.x > 0 && pc.x > 0) ||
-                (pa.x < 0 && pb.x < 0 && pc.x < 0) ||
-                (pa.y > 0 && pb.y > 0 && pc.y > 0) ||
-                (pa.y < 0 && pb.y < 0 && pc.y < 0)
+                (pa.X > 0 && pb.X > 0 && pc.X > 0) ||
+                (pa.X < 0 && pb.X < 0 && pc.X < 0) ||
+                (pa.Y > 0 && pb.Y > 0 && pc.Y > 0) ||
+                (pa.Y < 0 && pb.Y < 0 && pc.Y < 0)
             ) return false;
 
-            var c_ab = System.Math.Sign(Point2D.Cross(pa, pb));
-            var c_bc = System.Math.Sign(Point2D.Cross(pb, pc));
-            var c_ca = System.Math.Sign(Point2D.Cross(pc, pa));
+            var c_ab = Fix64.Sign(Point2D.Cross(pa, pb));
+            var c_bc = Fix64.Sign(Point2D.Cross(pb, pc));
+            var c_ca = Fix64.Sign(Point2D.Cross(pc, pa));
 
             return c_ab * c_bc >= 0 && c_bc * c_ca >= 0;
         }
@@ -93,13 +71,13 @@ namespace DecimalNavigation
 
         public static bool IsInTriangle_XZ(Point3D a, Point3D b, Point3D c, Point3D p)
         {
-            return IsInTriangle(a.xz, b.xz, c.xz, p.xz);
+            return IsInTriangle(a.XZ, b.XZ, c.XZ, p.XZ);
         }
         public static Point2D NearestPointInLine(Point2D a, Point2D b, Point2D p)
         {
             var ap = p - a;
             var ab = b - a;
-            var l = ab.magnitude;
+            var l = ab.Magnitude;
             var r = Point2D.Dot(ab, ap) / l;
             if (r <= 0)
             {
@@ -118,7 +96,7 @@ namespace DecimalNavigation
         {
             var ap = p - a;
             var ab = b - a;
-            var l = ab.magnitude;
+            var l = ab.Magnitude;
             var r = Point3D.Dot(ab, ap) / l;
             if (r <= 0)
             {
@@ -135,175 +113,43 @@ namespace DecimalNavigation
         }
 
     }
-    [Serializable]
-    public struct Point2D : IEquatable<Point2D>
+
+    [StructLayout(LayoutKind.Explicit)]
+    struct LineIndice : IEquatable<LineIndice>
     {
-        public long x, y;
-        public long magnitude => FixedMath.Sqrt(x * x + y * y);
-
-        public Point2D(long x, long y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-        public Point2D(UnityEngine.Vector2 v)
-        {
-            x = (int)v.x;
-            y = (int)v.y;
-        }
-        public static Point2D operator -(Point2D l)
-        {
-            return new Point2D(-l.x, -l.y);
-        }
-        public static Point2D operator -(Point2D l, Point2D r)
-        {
-            return new Point2D(l.x - r.x, l.y - r.y);
-        }
-        public static Point2D operator +(Point2D l, Point2D r)
-        {
-            return new Point2D(l.x + r.x, l.y + r.y);
-        }
-        public static Point2D operator *(Point2D p, int m)
-        {
-            return new Point2D(p.x * m, p.y * m);
-        }
-        public static Point2D operator /(Point2D p, int m)
-        {
-            return new Point2D(p.x / m, p.y / m);
-        }
-        public static Point2D operator *(int m, Point2D p)
-        {
-            return p * m;
-        }
-        public static long Cross(Point2D l, Point2D r)
-        {
-            return l.x * r.y - r.x * l.y;
-        }
-        public static long Cross_XZ(Point3D l, Point3D r)
-        {
-            return l.x * r.z - r.x * l.z;
-        }
-        public static long Dot(Point2D l, Point2D r)
-        {
-            return l.x * r.x + l.y * r.y;
-        }
-        public override string ToString()
-        {
-            return "Vector2:" + x + "," + y;
-        }
-
-        public bool Equals(Point2D other)
-        {
-            return x == other.x && y == other.y;
-        }
-    }
-    [Serializable]
-    public struct Point3D : IEquatable<Point3D>
-    {
-        public long x, y, z;
-        public Point2D xz => new Point2D(x, z);
-        public long magnitude => FixedMath.Sqrt(x * x + y * y + z * z);
-        public long magnitude2 => x * x + y * y + z * z;
-        public Point3D(long x, long y, long z)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-        public Point3D(Vector3 v)
-        {
-            x = (int)v.x;
-            y = (int)v.y;
-            z = (int)v.z;
-        }
-        public static Point3D operator -(Point3D l)
-        {
-            return new Point3D(-l.x, -l.y, -l.z);
-        }
-        public static Point3D operator -(Point3D l, Point3D r)
-        {
-            return new Point3D(l.x - r.x, l.y - r.y, l.z - r.z);
-        }
-        public static Point3D operator +(Point3D l, Point3D r)
-        {
-            return new Point3D(l.x + r.x, l.y + r.y, l.z + r.z);
-        }
-        public static Point3D operator *(Point3D p, int m)
-        {
-            return new Point3D(p.x * m, p.y * m, p.z * m);
-        }
-        public static Point3D operator /(Point3D p, int m)
-        {
-            return new Point3D(p.x / m, p.y / m, p.z / m);
-        }
-        public static Point3D operator *(Point3D p, long m)
-        {
-            return new Point3D(p.x * m, p.y * m, p.z * m);
-        }
-        public static Point3D operator /(Point3D p, long m)
-        {
-            return new Point3D(p.x / m, p.y / m, p.z / m);
-        }
-        public static Point3D operator *(int m, Point3D p)
-        {
-            return p * m;
-        }
-        public static Point3D Cross(Point3D l, Point3D r)
-        {
-            /*
-                | lx rx i |
-            Det | ly ry j |
-                | lz rz k |
-             */
-            return new Point3D(
-                l.y * r.z - l.z * r.y,
-                l.z * r.x - l.x * r.z,
-                l.x * r.y - l.y * r.x
-            );
-        }
-        public static long Dot(Point3D l, Point3D r)
-        {
-            return l.x * r.x + l.y * r.y + l.z * r.z;
-        }
-        public override string ToString()
-        {
-            return "Vector3:" + x + "," + y + "," + z;
-        }
-        public Vector3 ToVector3()
-        {
-            return new Vector3(x, y, z);
-        }
-
-        public bool Equals(Point3D other)
-        {
-            return x == other.x && y == other.y && z == other.z;
-        }
-    }
-
-
-    class LineIndice
-    {
+        [FieldOffset(0)]
+        public ulong ID;
+        [FieldOffset(0)]
         public int ia;
+        [FieldOffset(4)]
         public int ib;
 
         public LineIndice(int a, int b)
         {
-            ia = a; ib = b;
+            ID = 0;
+            if (a > b)
+            {
+                ia = b; ib = a;
+            }
+            else
+            {
+                ia = a; ib = b;
+            }
         }
-        public override bool Equals(object other) =>
-            (ia == ((LineIndice)other).ia && ib == ((LineIndice)other).ib) ||
-        (ia == ((LineIndice)other).ib && ib == ((LineIndice)other).ia);
+
+        public bool Equals(LineIndice other)
+        {
+            return ID == other.ID;
+        }
 
         public override int GetHashCode()
         {
-            return ia * ib;
+            return ia * 322 + ib;
         }
-        //public static bool operator ==(LineIndice l, LineIndice r) => l.ia == r.ia && l.ib == r.ib;
-        //public static bool operator !=(LineIndice l, LineIndice r) => l.ia != r.ia || l.ib != r.ib;
     }
 
 
-    public unsafe struct AStarNode:IEquatable<AStarNode>,IComparable<AStarNode>
+    public unsafe struct AStarNode : IEquatable<AStarNode>, IComparable<AStarNode>
     {
         public int prevIndex;
         public int index;
@@ -311,22 +157,23 @@ namespace DecimalNavigation
         public int GValue;
         public int FValue
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return GValue + HValue;
             }
         }
-        public Point3D A;
-        public Point3D B;
-        public Point3D C;
+        public Point3D A { get; private set; }
+        public Point3D B { get; private set; }
+        public Point3D C { get; private set; }
         //public readonly Point3D ab;
         //public Point3D ba => A - B;
         //public Point3D ac => C - A;
         //public Point3D ca => A - C;
         //public Point3D cb => B - C;
         //public Point3D bc => C - B;
-        public Point3D center { get => (A + B + C) / 3; }
-        public FixedList32Bytes<int> surrounds;
+        public Point3D center { get; private set; }
+        public List<int> surrounds;
 
         public static AStarNode Create(Point3D A, Point3D B, Point3D C)
         {
@@ -334,25 +181,30 @@ namespace DecimalNavigation
             node.A = A;
             node.B = B;
             node.C = C;
+            node.center = (A + B + C) / 3;
             node.surrounds = new();
             return node;
         }
 
-        public int GetDistance(Point3D p)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetDistance2(in Point3D p)
         {
-            return (int)(center - p).magnitude;
+            return (int)(center - p).Magnitude2;
         }
 
-        public int GetDistance(AStarNode n)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetDistance2(in AStarNode n)
         {
-            return GetDistance(n.center);
+            return GetDistance2(n.center);
         }
 
-        public FixedList32Bytes<int> GetSurrounds()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public List<int> GetSurrounds()
         {
             return surrounds;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsInside(Point3D p)
         {
             return FixedMath.IsInTriangle_XZ(A, B, C, p);
@@ -381,16 +233,14 @@ namespace DecimalNavigation
         public Point3D[] vertices;
         public int[] indices;
         public int[] edges;
-        public NativeArray<AStarNode> nodes;
+        public AStarNode[] nodes;
 
 
-        NativeList<Point3D> path = new();
         //AStarSystem system;
 
         public NavigationSystem(NormalizedNavmeshAsset asset)
         {
-            nodes = new(asset.indices.Length/3,Allocator.Persistent);
-            path = new(Allocator.Persistent);
+            nodes = new AStarNode[asset.indices.Length / 3];
             indices = asset.indices;
             vertices = asset.vertices;
 
@@ -426,8 +276,8 @@ namespace DecimalNavigation
 
         ~NavigationSystem()
         {
-            nodes.Dispose();
-            path.Dispose();
+            // nodes.Dispose();
+            // path.Dispose();
         }
 
 
@@ -482,7 +332,7 @@ namespace DecimalNavigation
         {
             for (int i = 0; i < edges.Length; i += 2)
             {
-                if (FixedMath.IsLineCross(vertices[edges[i + 0]].xz, vertices[edges[i + 1]].xz, a.xz, b.xz))
+                if (FixedMath.IsLineCross(vertices[edges[i + 0]].XZ, vertices[edges[i + 1]].XZ, a.XZ, b.XZ))
                 {
                     return false;
                 }
@@ -491,17 +341,17 @@ namespace DecimalNavigation
         }
 
 
-        //[BurstCompile]
-        public struct CalcPathJob : IJob
+        // [BurstCompile]
+        public struct CalcPathJob// : IJob
         {
-            public NativeArray<AStarNode> nodes;
+            public AStarNode[] nodes;
             public Point3D pfrom;
             public Point3D pto;
-            public NativeList<Point3D> result;
+            // public NativeList<Point3D> result;
 
             public bool IsPointInMesh(Point3D p, out int triangleIndex)
             {
-                for (int i = 0; i < nodes.Length; i ++)
+                for (int i = 0; i < nodes.Length; i++)
                 {
                     if (FixedMath.IsInTriangle_XZ(nodes[i].A, nodes[i].B, nodes[i].C, p))
                     {
@@ -513,23 +363,23 @@ namespace DecimalNavigation
                 return false;
             }
 
-            void GetSharedPoints(AStarNode a, AStarNode b, ref FixedList64Bytes<Point3D> result)
+            unsafe void GetSharedPoints(AStarNode a, AStarNode b, Point3D* result)
             {
                 var eye = a.A;
-                result.Clear();
+                int i = 0;
                 if (a.A.Equals(b.A) || a.A.Equals(b.B) || a.A.Equals(b.C))
                 {
-                    result.Add(a.A);
+                    result[i++] = a.A;
                     eye = a.B;
                 }
                 if (a.B.Equals(b.A) || a.B.Equals(b.B) || a.B.Equals(b.C))
                 {
-                    result.Add(a.B);
+                    result[i++] = a.B;
                     if (eye.Equals(a.B)) eye = a.C;
                 }
                 if (a.C.Equals(b.A) || a.C.Equals(b.B) || a.C.Equals(b.C))
                 {
-                    result.Add(a.C);
+                    result[i++] = a.C;
                 }
                 var l = result[0];
                 var r = result[1];
@@ -539,62 +389,76 @@ namespace DecimalNavigation
                     result[1] = l;
                 }
             }
-            public NativeList<AStarNode> AStarPathSearch(int indexFrom, int indexTo)
+            static HashSet<int> openList = new(64);
+            static HashSet<int> closeList = new(32);
+            static List<AStarNode> npath = new(32);
+            public List<AStarNode> AStarPathSearch(int indexFrom, int indexTo)
             {
-                NativeList<int> openList = new(Allocator.Temp);
-                NativeParallelHashSet<int> closeList = new(8, Allocator.Temp);
-                NativeList<AStarNode> npath = new(Allocator.Temp);
+                // NativeList<int> openList = new(Allocator.Temp);
+                // NativeHashSet<int> closeList = new(8, Allocator.Temp);
+                // NativeList<AStarNode> npath = new(Allocator.Temp);
+                openList.Clear();
+                closeList.Clear();
+                npath.Clear();
+
                 //nodeFrom = GetInsideNode(pfrom) ?? GetNearest(pfrom);
                 //nodeTo = GetInsideNode(pto) ?? GetNearest(pto);
                 var nodeFrom = nodes[indexFrom];
                 nodeFrom.prevIndex = -1;
                 nodes[indexFrom] = nodeFrom;
                 openList.Add(nodeFrom.index);
-                while (openList.Length > 0)
+
+                while (openList.Count > 0)
                 {
-                    NativeSortExtension.Sort(openList);
-                    var nextIdx = openList[0];
-                    var node = nodes[nextIdx];
+                    // NativeSortExtension.Sort(openList);
+                    var nextIdx = openList.First();
+                    ref var node = ref nodes[nextIdx];
                     if (nextIdx == indexTo)
                     {
+                        Profiler.BeginSample("post ");
                         while (-1 != node.prevIndex)
                         {
                             npath.Add(node);
-                            node = nodes[node.prevIndex];
+                            node = ref nodes[node.prevIndex];
                         }
                         npath.Add(nodeFrom);
+                        Profiler.EndSample();
                         return npath;
                     }
+
+
+                    Profiler.BeginSample("search surround ");
                     foreach (var sidx in node.GetSurrounds())
                     {
                         if (closeList.Contains(sidx)) continue;
-                        var snode = nodes[sidx];
+                        ref var snode = ref nodes[sidx];
                         if (openList.Contains(sidx))
                         {
-                            var newDist = snode.GValue + snode.GetDistance(node);
+                            var newDist = snode.GValue + snode.GetDistance2(node);
                             if (node.GValue > newDist)
                             {
                                 node.prevIndex = sidx;
                                 node.GValue = newDist;
-                                nodes[node.index] = node;
                             }
-                            continue;
                         }
-                        snode.GValue = node.GValue + snode.GetDistance(node);
-                        snode.HValue = snode.GetDistance(nodes[indexTo]);
-                        snode.prevIndex = node.index;
-                        nodes[sidx] = snode;
-                        openList.Add(sidx);
+                        else
+                        {
+                            snode.GValue = node.GValue + snode.GetDistance2(node);
+                            snode.HValue = snode.GetDistance2(nodes[indexTo]);
+                            snode.prevIndex = node.index;
+                            openList.Add(sidx);
+                        }
                     }
-                    nodes[node.index] = node;
-                    openList.RemoveAtSwapBack(0);
+                    Profiler.EndSample();
+                    // openList.RemoveAtSwapBack(0);
+                    openList.Remove(nextIdx);
                     closeList.Add(node.index);
                 }
                 //Debug.Log(false);
                 return npath;
             }
 
-            public void Execute()
+            public unsafe void Execute(ref Path result)
             {
                 //TODO: out of mesh
                 if (!IsPointInMesh(pfrom, out int ifrom))
@@ -619,21 +483,22 @@ namespace DecimalNavigation
                     l = e;
                     r = e;
 
-                    var np = new FixedList64Bytes<Point3D>();
-                    var li = npath.Length - 1;
-                    var ri = npath.Length - 1;
+                    var np = stackalloc Point3D[2];
+                    // var np = new FixedList64Bytes<Point3D>();
+                    var li = npath.Count - 1;
+                    var ri = npath.Count - 1;
                     //var curnode = zpath[0];
-                    for (int i = npath.Length-1; i >= 0; i--)
+                    for (int i = npath.Count - 1; i >= 0; i--)
                     {
                         if (i == 0)
                         {
-                            np.Clear();
-                            np.Add(pto);
-                            np.Add(pto);
+                            // np.Clear();
+                            np[0] =
+                            np[1] = pto;
                         }
                         else
                         {
-                            GetSharedPoints(npath[i], npath[i - 1], ref np);
+                            GetSharedPoints(npath[i], npath[i - 1], np);
                         }
                         if (isNewEye)
                         {
@@ -662,7 +527,7 @@ namespace DecimalNavigation
                         var c_nl_r = Point2D.Cross_XZ(nl, r);
                         var c_l_nr = Point2D.Cross_XZ(l, nr);
                         var c_nr_r = Point2D.Cross_XZ(nr, r);
-                        
+
                         if (c_l_nl <= 0 && c_nl_r <= 0)
                         {
                             l = nl;
@@ -703,22 +568,62 @@ namespace DecimalNavigation
         /// <param name="ridgeCut">是否开启背脊切割（额外考虑高度信息）</param>
         /// <param name="cornerProbe">是否开启拐角探测（优化的路径）</param>
         /// <returns>折线路径点</returns>
-        public Point3D[] CalculatePath(Point3D pfrom, Point3D pto, bool enableRidgeCutting = false, bool enableCornerProbing = true)
+        public void CalculatePath(Point3D pfrom, Point3D pto, ref Path path, bool enableRidgeCutting = false, bool enableCornerProbing = true)
         {
-            var result = new NativeList<Point3D>(Allocator.TempJob);
+            // var result = new NativeList<Point3D>(Allocator.TempJob);
             CalcPathJob job = new CalcPathJob()
             {
                 nodes = nodes,
                 pfrom = pfrom,
                 pto = pto,
-                result = result
+                // result = result
             };
-            job.Schedule().Complete();
-            var arr = result.ToArray();
-            result.Dispose();
-            return arr;
+            job.Execute(ref path);
+            // job.Schedule().Complete();
+            // path.CopyFrom(result);
+            // result.Dispose();
         }
+        public class Path
+        {
+            public Point3D[] points;
+            public int Count { get; private set; }
 
+            public Path()
+            {
+                points = new Point3D[32];
+                Count = 0;
+            }
+
+            internal void CopyFrom(NativeList<Point3D> lst)
+            {
+                if (Count < lst.Length)
+                {
+                    Array.Resize(ref points, lst.Length);
+                }
+                lst.AsArray().CopyTo(points);
+                Count = lst.Length;
+            }
+            public ref Point3D this[int index]
+            {
+                get
+                {
+                    if (index >= Count) throw new IndexOutOfRangeException();
+                    return ref points[index];
+                }
+            }
+            public void Clear()
+            {
+                Count = 0;
+            }
+            public void Add(Point3D p)
+            {
+                if (Count >= points.Length)
+                {
+                    Array.Resize(ref points, points.Length << 1);
+                }
+                points[Count++] = p;
+            }
+        }
         void ApplyRidgeCutting(List<Point3D> path, Point3D pfrom, Point3D pto, List<Point3D[]> crossPath)
         {
             /*
@@ -733,7 +638,7 @@ namespace DecimalNavigation
             {
                 var c = crossPath[i][0];
                 var d = crossPath[i][1];
-                if (!FixedMath.IsLineCross(c.xz, d.xz, a.xz, b.xz)) continue;
+                if (!FixedMath.IsLineCross(c.XZ, d.XZ, a.XZ, b.XZ)) continue;
                 var cab = Point2D.Cross_XZ(c - a, b - a);
                 var bad = Point2D.Cross_XZ(b - a, d - a);
                 var bcd = Point2D.Cross_XZ(b - c, d - c);
@@ -744,8 +649,8 @@ namespace DecimalNavigation
                 //var weft_ratio = cab / (bad + cab);
 
                 var xz = a + (b - a) * dca / (bcd + dca);
-                var y = c.y + (d.y - c.y) * cab / (bad + cab);
-                path.Add(new Point3D(xz.x, y, xz.z));
+                var y = c.Y + (d.Y - c.Y) * cab / (bad + cab);
+                path.Add(new Point3D(xz.X, y, xz.Z));
             }
         }
 

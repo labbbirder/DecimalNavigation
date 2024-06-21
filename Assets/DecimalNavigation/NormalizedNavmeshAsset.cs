@@ -3,11 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-//using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 using DecimalNavigation;
 using UnityEngine.SceneManagement;
+using com.bbbirder.Collections;
+
+using scalar = FixMath.NET.Fix64;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -34,6 +37,7 @@ public class NormalizedNavmeshAsset : ScriptableObject
         var rawMesh = NavMesh.CalculateTriangulation();
         Vector3[] vertices = rawMesh.vertices;
         int[] triangles = rawMesh.indices;
+
         //var precision = AStarSystem.percision;
         var ovl = new List<Point3D>();
         //var tri = new List<LineIndice>();
@@ -90,15 +94,98 @@ public class NormalizedNavmeshAsset : ScriptableObject
 
         this.vertices = ovl.ToArray();
         this.indices = oil.ToArray();
+        EditorUtility.SetDirty(this);
     }
 
+    public void NormalizeMesh(Mesh mesh)
+    {
+        Vector3[] vertices = mesh.vertices;
+        int[] triangles = mesh.triangles;
+
+        var granule = GetMinGranularity(mesh);
+
+        for (int n = 0; n < vertices.Length; n++)
+        {
+            var v = vertices[n];
+            scalar x = 0, y = 0;
+            RoundToGranule(ref x, granule);
+            RoundToGranule(ref y, granule);
+            var p2 = new Point2D(x, y);
+            // TODO: write back
+        }
+
+        Debug.Log(granule);
+        static void RoundToGranule(ref scalar v, scalar granule)
+        {
+            scalar MIN_ERROR = (scalar)0.001m;
+            var m = v / granule;
+            if (scalar.Abs(m % 1) < MIN_ERROR)
+            {
+                m = scalar.Round(m);
+                v = m * granule;
+            }
+        }
+    }
+
+    public scalar GetMinGranularity(Mesh mesh)
+    {
+
+        scalar EPSILON = scalar.One / 65536;
+
+        Vector3[] vertices = mesh.vertices;
+        int[] triangles = mesh.triangles;
+
+        OpenIntervalSet intervalSet = new();
+
+        int i = 0;
+        for (; i < triangles.Length;)
+        {
+            var a = ToV2(vertices[triangles[i++]]);
+            var b = ToV2(vertices[triangles[i++]]);
+            var c = ToV2(vertices[triangles[i++]]);
+
+            var (xmin, xmax) = MinMax(a.X, b.X, c.X);
+            var (ymin, ymax) = MinMax(a.Y, b.Y, c.Y);
+
+            intervalSet.Union(xmin + EPSILON, xmax - EPSILON);
+            intervalSet.Union(ymin + EPSILON, ymax - EPSILON);
+        }
+
+        var granule = intervalSet.GetMinGranularity();
+        return granule;
+    }
+
+    public void BuildShape(Point2D[] vertices, int[] triangles)
+    {
+
+    }
+
+
+    static (scalar min, scalar max) MinMax(scalar x, scalar y, scalar z)
+    {
+        if (x > y)
+        {
+            (x, y) = (y, x);
+        }
+        if (y > z)
+        {
+            (y, z) = (z, y);
+        }
+        if (x > y)
+        {
+            (x, y) = (y, x);
+        }
+        return (x, z);
+    }
+
+    static Point2D ToV2(Vector3 v3) => new((scalar)v3.x, (scalar)v3.z);
     public static NormalizedNavmeshAsset GetInstanceOfCurrentScene()
     {
 #if UNITY_EDITOR
         return AssetDatabase.LoadAssetAtPath<NormalizedNavmeshAsset>(outDir + "/" + SceneManager.GetActiveScene().name + ".asset");
         //return AssetData
 #else
-        return null;
+        return default;
 #endif
     }
     //private int[] calculateEdges()
@@ -110,3 +197,13 @@ public class NormalizedNavmeshAsset : ScriptableObject
     //}
 
 }
+
+/*
+TODO LIST:
+    1. Vector to Point
+    2. Triangles to Polygons
+    3. Polygons to AStarNodes
+    4. AStarNode Search
+    5. Corner Search
+    6. Nearest Point Search
+*/

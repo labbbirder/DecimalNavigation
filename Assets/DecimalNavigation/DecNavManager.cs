@@ -7,17 +7,14 @@ namespace DecimalNavigation
     {
         public NormalizedNavmeshAsset navMesh;
         NavigationSystem _system;
-        public NavigationSystem system
-        {
-            get
-            {
-                _system = _system ?? new NavigationSystem(navMesh);
-                return _system;
-            }
-        }
+        public NavigationSystem system => _system ??= new NavigationSystem(navMesh);
+
         private void OnValidate()
         {
-            navMesh = NormalizedNavmeshAsset.GetInstanceOfCurrentScene();
+            if (!navMesh)
+            {
+                navMesh = NormalizedNavmeshAsset.GetInstanceOfCurrentScene();
+            }
         }
     }
 }
