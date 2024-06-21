@@ -10,7 +10,7 @@ public class Test : MonoBehaviour
     public Point2D[] inputs;
     public Point2D[] substracts;
     public List<Fix64> outputs;
-    OpenIntervalSet range = new();
+    IntervalList range = new();
     [ContextMenu("Go")]
     public void Do()
     {
@@ -23,7 +23,7 @@ public class Test : MonoBehaviour
         {
             range.Substract(item.X, item.Y);
         }
-        outputs = range.holes;
+        outputs = range.values;
         range.GetMinGranularity();
     }
     public void Update()

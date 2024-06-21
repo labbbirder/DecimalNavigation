@@ -135,7 +135,7 @@ public class NormalizedNavmeshAsset : ScriptableObject
         Vector3[] vertices = mesh.vertices;
         int[] triangles = mesh.triangles;
 
-        OpenIntervalSet intervalSet = new();
+        IntervalList intervalSet = new();
 
         int i = 0;
         for (; i < triangles.Length;)

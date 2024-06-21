@@ -6,14 +6,18 @@ using scalar = FixMath.NET.Fix64;
 namespace com.bbbirder.Collections
 {
     /// <summary>
-    /// 多个独立开区间的并集
+    /// 多个独立区间的并集，默认为开区间
     /// </summary>
-    public class OpenIntervalSet
+    /// <remarks>
+    /// “并”和“反”为完备集，作为内部实现的操作原语。取反后，同时将“开区间”、“闭区间”状态取反。
+    /// 在“开区间”状态下，任何运算都视为开区间运算；在“闭区间”状态下，任何运算都视为闭区间运算；
+    /// </remarks>
+    public class IntervalList
     {
         internal static readonly scalar NegativeInfinity = scalar.MinValue;
         internal static readonly scalar PositiveInfinity = scalar.MaxValue;
 
-        public List<scalar> holes = new();
+        public List<scalar> values = new();
 
         /// <summary>
         /// 是否为开区间状态
@@ -23,7 +27,7 @@ namespace com.bbbirder.Collections
         /// <summary>
         /// 独立的开区间个数
         /// </summary>
-        public int Count => holes.Count >> 1;
+        public int Count => values.Count >> 1;
 
         /// <summary>
         /// 获取在实数轴上排列的第<paramref name="idx"/>个开区间
@@ -31,7 +35,7 @@ namespace com.bbbirder.Collections
         /// <param name="idx"></param>
         /// <returns></returns>
         public (scalar min, scalar max) this[int idx]
-            => (holes[idx << 1], holes[(idx << 1) + 1]);
+            => (values[idx << 1], values[(idx << 1) + 1]);
 
         public void Union((scalar min, scalar max) openInterval)
         {
@@ -39,7 +43,7 @@ namespace com.bbbirder.Collections
         }
 
         /// <summary>
-        /// 与一个开区间取并集
+        /// 与一个区间取并集
         /// </summary>
         /// <param name="min"></param>
         /// <param name="max"></param>
@@ -90,10 +94,10 @@ namespace com.bbbirder.Collections
             if (plusMin) imin++;
             if (plusMax) imax++;
 
-            if (imax > imin) holes.RemoveRange(imin, imax - imin);
+            if (imax > imin) values.RemoveRange(imin, imax - imin);
 
-            if (insertMax) holes.Insert(imin, max);
-            if (insertMin) holes.Insert(imin, min);
+            if (insertMax) values.Insert(imin, max);
+            if (insertMin) values.Insert(imin, min);
         }
 
         /// <summary>
@@ -104,28 +108,28 @@ namespace com.bbbirder.Collections
             IsOpen ^= true;
             if (Count <= 0) return;
 
-            if (holes[0] == NegativeInfinity)
+            if (values[0] == NegativeInfinity)
             {
-                holes.RemoveAt(0);
+                values.RemoveAt(0);
             }
             else
             {
-                holes.Insert(0, NegativeInfinity);
+                values.Insert(0, NegativeInfinity);
             }
 
-            var lastIdx = holes.Count - 1;
-            if (holes[lastIdx] == PositiveInfinity)
+            var lastIdx = values.Count - 1;
+            if (values[lastIdx] == PositiveInfinity)
             {
-                holes.RemoveAt(lastIdx);
+                values.RemoveAt(lastIdx);
             }
             else
             {
-                holes.Add(PositiveInfinity);
+                values.Add(PositiveInfinity);
             }
         }
 
         /// <summary>
-        /// 减去一个闭区间
+        /// 减去一个区间
         /// </summary>
         /// <param name="min"></param>
         /// <param name="max"></param>
@@ -152,7 +156,7 @@ namespace com.bbbirder.Collections
             Inverse();
         }
 
-        public void Union(OpenIntervalSet another)
+        public void Union(IntervalList another)
         {
             for (int i = 0; i < another.Count; i++)
             {
@@ -160,7 +164,7 @@ namespace com.bbbirder.Collections
             }
         }
 
-        public void Substract(OpenIntervalSet another)
+        public void Substract(IntervalList another)
         {
             Inverse();
             for (int i = 0; i < another.Count; i++)
@@ -170,7 +174,7 @@ namespace com.bbbirder.Collections
             Inverse();
         }
 
-        public void Intersect(OpenIntervalSet another)
+        public void Intersect(IntervalList another)
         {
             Inverse();
             another.Inverse();
@@ -191,7 +195,7 @@ namespace com.bbbirder.Collections
                 var r = this[i];
                 if (r.min == r.max)
                 {
-                    holes.RemoveRange(i << 1, 2);
+                    values.RemoveRange(i << 1, 2);
                 }
             }
         }
@@ -211,13 +215,13 @@ namespace com.bbbirder.Collections
 
         public void Clear()
         {
-            holes.Clear();
+            values.Clear();
         }
 
         public int MinIndexOf(scalar item)
         {
             var idx = FastSearch(item);
-            while (idx > 0 && holes[idx - 1].Equals(item))
+            while (idx > 0 && values[idx - 1].Equals(item))
             {
                 idx--;
             }
@@ -229,7 +233,7 @@ namespace com.bbbirder.Collections
             var idx = FastSearch(item);
             if (idx > 0)
             {
-                while (idx < holes.Count - 1 && holes[idx + 1].Equals(item))
+                while (idx < values.Count - 1 && values[idx + 1].Equals(item))
                 {
                     idx++;
                 }
@@ -240,17 +244,17 @@ namespace com.bbbirder.Collections
         private int FastSearch(scalar item)
         {
             const int BINARY_SEARCH_THRESHOLD = 50;
-            var cnt = holes.Count;
+            var cnt = values.Count;
             if (cnt > BINARY_SEARCH_THRESHOLD)
             {
-                return holes.BinarySearch(item);
+                return values.BinarySearch(item);
             }
             else
             {
                 int i = 0;
                 for (; i < cnt; i++)
                 {
-                    var r = holes[i];
+                    var r = values[i];
                     if (item > r) continue;
                     if (r == item)
                     {
@@ -276,7 +280,7 @@ namespace com.bbbirder.Collections
         /// </summary>
         /// <param name="set"></param>
         /// <returns></returns>
-        public static scalar GetMinGranularity(this OpenIntervalSet set)
+        public static scalar GetMinGranularity(this IntervalList set)
         {
             /* 问题描述 in Latex
                 \begin{array}{rrclcl}
