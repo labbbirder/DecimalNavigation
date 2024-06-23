@@ -21,9 +21,8 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-using DeterministicMath;
 
-namespace Jitter2.Collision
+namespace DecimalNavigation
 {
     /// <summary>
     /// Interface for entities which should be added to the <see cref="DynamicTree{T}"/>.

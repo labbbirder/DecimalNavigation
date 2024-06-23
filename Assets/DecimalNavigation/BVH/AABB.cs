@@ -1,10 +1,7 @@
 using System;
-using System.Runtime.InteropServices;
-using DecimalNavigation;
-using FixMath.NET;
 using scalar = System.Int64;
 
-namespace DeterministicMath
+namespace DecimalNavigation
 {
 	/// <summary>
 	/// Represents an 2D axis aligned bounding box (AABB).

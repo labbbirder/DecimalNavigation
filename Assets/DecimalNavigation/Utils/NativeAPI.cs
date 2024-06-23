@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace com.bbbirder.DecimalNavigation
+namespace DecimalNavigation
 {
 
     public unsafe static class NativeAPI

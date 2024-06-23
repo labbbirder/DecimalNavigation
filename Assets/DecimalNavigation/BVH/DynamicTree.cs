@@ -23,12 +23,10 @@
 
 using System;
 using System.Collections.Generic;
-using DecimalNavigation;
-using DeterministicMath;
 using UnityEngine.Assertions;
-using scalar = FixMath.NET.Fix64;
+using scalar = System.Int64;
 
-namespace Jitter2.Collision
+namespace DecimalNavigation
 {
     /// <summary>
     /// Represents a dynamic Axis Aligned Bounding Box (AABB) tree. A hashset (refer to <see cref="PairHashSet"/>)

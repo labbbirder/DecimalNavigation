@@ -10,9 +10,6 @@ using UnityEngine.SceneManagement;
 using com.bbbirder.Collections;
 
 using scalar = FixMath.NET.Fix64;
-using com.bbbirder.DecimalNavigation;
-using System.Drawing;
-using DeterministicMath;
 
 
 

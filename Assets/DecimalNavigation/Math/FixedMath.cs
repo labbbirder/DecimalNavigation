@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using scalar = System.Int64;
+
 namespace DecimalNavigation
 {
     public static class FMath

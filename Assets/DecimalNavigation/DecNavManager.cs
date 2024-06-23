@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using com.bbbirder.DecimalNavigation;
 using UnityEngine;
 namespace DecimalNavigation
 {

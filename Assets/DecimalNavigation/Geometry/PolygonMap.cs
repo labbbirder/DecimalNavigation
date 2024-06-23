@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using DecimalNavigation;
-using Jitter2.Collision;
 using scalar = System.Int64;
 
-namespace com.bbbirder.DecimalNavigation
+namespace DecimalNavigation
 {
     [Serializable]
     public unsafe class PolygonMap
