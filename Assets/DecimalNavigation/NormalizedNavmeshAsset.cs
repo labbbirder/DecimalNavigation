@@ -10,20 +10,30 @@ using UnityEngine.SceneManagement;
 using com.bbbirder.Collections;
 
 using scalar = FixMath.NET.Fix64;
+using com.bbbirder.DecimalNavigation;
+using System.Drawing;
+using DeterministicMath;
+
+
+
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-public class NormalizedNavmeshAsset : ScriptableObject
+public unsafe class NormalizedNavmeshAsset : ScriptableObject
 {
-
+    [Serializable]
+    public struct PolygonData
+    {
+        public int[] indices;
+        public AABB2D boundBox;
+    }
     public static string outDir = "Assets/NavMeshResource";
     [Range(1, 1000)]
     public int precision = 100;
-    [SerializeField]
-    public Point3D[] vertices;
-    public int[] indices;
 
+    public Point2D[] points;
+    public List<PolygonData> polygons = new();
     //public int[] edges;
 
     /// <summary>
@@ -38,62 +48,25 @@ public class NormalizedNavmeshAsset : ScriptableObject
         Vector3[] vertices = rawMesh.vertices;
         int[] triangles = rawMesh.indices;
 
-        //var precision = AStarSystem.percision;
-        var ovl = new List<Point3D>();
-        //var tri = new List<LineIndice>();
-        //var lil = new HashSet<LineIndice>();
-        var oil = new List<int>();
+        var redirect = new Dictionary<int, int>();
+        var polygons = new List<Polygon>();
 
-        /* start weld mesh */
-        var rmvList = new List<int>();
-        for (int i = 0; i < vertices.Length - 1; i++)
+        var buffer = ConvertVerticesToBuffer(ToV2, vertices, redirect);
+
+        ConvertTrianglesToPolygons(buffer, triangles, redirect, polygons);
+
+        points = buffer;
+        this.polygons.Clear();
+        foreach (var poly in polygons)
         {
-            for (int j = i + 1; j < vertices.Length; j++)
+            poly.UpdateShape();
+            this.polygons.Add(new PolygonData()
             {
-                if ((vertices[i] - vertices[j]).magnitude * precision > 1) continue;
-                if (rmvList.Contains(j)) continue;
-                for (int k = 0; k < triangles.Length; k++)
-                {
-                    //if (triangles[k] > j) triangles[k] = triangles[k] - 1;
-                    if (triangles[k] == j) triangles[k] = i;
-                }
-                rmvList.Add(j);
-            }
+                boundBox = poly.WorldBoundingBox,
+                indices = poly.indices,
+            });
         }
-        for (int k = 0; k < triangles.Length; k++)
-        {
-            triangles[k] = triangles[k] - rmvList.Count(x => x < triangles[k]);
-            oil.Add(triangles[k]);
-        }
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            if (rmvList.Contains(i)) continue;
-            ovl.Add(new Point3D(vertices[i] * precision));
-        }
-        /* end of weld mesh */
 
-        //for (int i = 0; i < triangles.Length; i += 3)
-        //{
-        //    //Debug.Log(triangles[i + 0] + "," + triangles[i + 1]);
-        //    //oil.Add(triangles[i + 0]);
-        //    //oil.Add(triangles[i + 1]);
-        //    //oil.Add(triangles[i + 1]);
-        //    //oil.Add(triangles[i + 2]);
-        //    //oil.Add(triangles[i + 2]);
-        //    //oil.Add(triangles[i + 0]);
-        //    tri.Add(new LineIndice(triangles[i + 0], triangles[i + 1]));
-        //    tri.Add(new LineIndice(triangles[i + 1], triangles[i + 2]));
-        //    tri.Add(new LineIndice(triangles[i + 2], triangles[i + 0]));
-
-        //}
-        //foreach (var li in lil)
-        //{
-        //    oil.Add(li.ia);
-        //    oil.Add(li.ib);
-        //}
-
-        this.vertices = ovl.ToArray();
-        this.indices = oil.ToArray();
         EditorUtility.SetDirty(this);
     }
 
@@ -155,9 +128,55 @@ public class NormalizedNavmeshAsset : ScriptableObject
         return granule;
     }
 
-    public void BuildShape(Point2D[] vertices, int[] triangles)
+    public Point2D[] ConvertVerticesToBuffer(Func<Vector3, Point2D> v3p2, Vector3[] vertices, Dictionary<int, int> redirect)
     {
+        var uniquePoints = new Dictionary<Point2D, int>();
+        var cnt = 0;
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            var p2d = v3p2(vertices[i]);
+            if (!uniquePoints.TryGetValue(p2d, out int idx))
+            {
+                uniquePoints[p2d] = cnt;
+                redirect[i] = cnt;
+                cnt++;
+            }
+            else
+            {
+                redirect[i] = idx;
+            }
+        }
 
+        var pBuffer = new Point2D[cnt];
+        foreach (var (p2d, idx) in uniquePoints)
+        {
+            pBuffer[idx] = p2d;
+        }
+
+        return pBuffer;
+    }
+
+
+    public unsafe void ConvertTrianglesToPolygons(Point2D[] vertices, int[] triangles, Dictionary<int, int> redirect, List<Polygon> outPolygons)
+    {
+        for (int i = 0; i < triangles.Length;)
+        {
+            var ia = redirect[triangles[i++]];
+            var ib = redirect[triangles[i++]];
+            var ic = redirect[triangles[i++]];
+            var a = vertices[ia];
+            var b = vertices[ib];
+            var c = vertices[ic];
+            if (Point2D.Cross(c - a, b - a) > 0)
+            {
+                var poly = new Polygon(vertices, 3);
+                poly[0] = ia;
+                poly[1] = ib;
+                poly[2] = ic;
+                outPolygons.Add(poly);
+            }
+        }
+        GeometryManipulator.ConvertToConvexPolygons(outPolygons);
     }
 
 
@@ -178,7 +197,7 @@ public class NormalizedNavmeshAsset : ScriptableObject
         return (x, z);
     }
 
-    static Point2D ToV2(Vector3 v3) => new((scalar)v3.x, (scalar)v3.z);
+    Point2D ToV2(Vector3 v3) => new((scalar)v3.x * precision, (scalar)v3.z * precision);
     public static NormalizedNavmeshAsset GetInstanceOfCurrentScene()
     {
 #if UNITY_EDITOR
@@ -200,8 +219,8 @@ public class NormalizedNavmeshAsset : ScriptableObject
 
 /*
 TODO LIST:
-    1. Vector to Point
-    2. Triangles to Polygons
+    - 1. Vector to Point
+    - 2. Triangles to Polygons
     3. Polygons to AStarNodes
     4. AStarNode Search
     5. Corner Search

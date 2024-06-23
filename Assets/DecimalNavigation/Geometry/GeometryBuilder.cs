@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using DecimalNavigation;
-using scalar = FixMath.NET.Fix64;
+using scalar = System.Int64;
 
-public static class GeometryManipulator
+public unsafe static class GeometryManipulator
 {
-    readonly static scalar Epsilon = scalar.One / 10000;
+    readonly static scalar Epsilon = FMath.Epsilon;
     /// <summary>
     /// 将三角形列表合并为凸多边形列表
     /// </summary>
@@ -76,17 +76,17 @@ public static class GeometryManipulator
                 }
 
                 // 判断凸边界
-                p1 = poly1[i11 - 1];
-                p2 = poly1[i11];
-                p3 = poly2[i22 + 1];
+                p1 = poly1.GetPoint(i11 - 1);
+                p2 = poly1.GetPoint(i11);
+                p3 = poly2.GetPoint(i22 + 1);
                 if (!IsConvex(p1, p2, p3))
                 {
                     continue;
                 }
 
-                p1 = poly1[i21 - 1];
-                p2 = poly1[i12];
-                p3 = poly1[i12 + 1];
+                p1 = poly2.GetPoint(i21 - 1);
+                p2 = poly1.GetPoint(i12);
+                p3 = poly1.GetPoint(i12 + 1);
                 if (!IsConvex(p1, p2, p3))
                 {
                     continue;
@@ -94,7 +94,7 @@ public static class GeometryManipulator
 
                 // TODO: 使用链表优化合并操作
                 // 合并成新的多边形
-                var newpoly = new Polygon(poly1.Count + poly2.Count - 2);
+                var newpoly = new Polygon(poly1.Vertices, poly1.Count + poly2.Count - 2);
                 var k = 0;
                 for (var j = i12; j != i11; j = (j + 1) % poly1.Count)
                 {
@@ -131,8 +131,8 @@ public static class GeometryManipulator
     {
         for (int i = 0; i < polygon.Count; i++)
         {
-            var p1 = polygon[i];
-            var p2 = polygon[i + 1];
+            var p1 = polygon.GetPoint(i);
+            var p2 = polygon.GetPoint(i + 1);
             if (!IsConvex(p2, p, p1)) return false;
         }
         return true;
@@ -144,37 +144,33 @@ public static class GeometryManipulator
     /// <param name="polygon"></param>
     /// <param name="p"></param>
     /// <returns></returns>
-    public static Point2D GetNearest(this Polygon polygon, Point2D p)
+    public static bool GetNearest(this Polygon polygon, Point2D p, out Point2D nearest)
     {
         for (int i = 0; i < polygon.Count; i++)
         {
-            var p1 = polygon[i];
-            var p2 = polygon[i + 1];
+            var p1 = polygon.GetPoint(i);
+            var p2 = polygon.GetPoint(i + 1);
             if (!IsConvex(p2, p, p1))
             {
                 var proj = Point2D.Dot(p - p2, p1 - p2);
                 if (proj < 0) continue;
-                var dist = (p2 - p1).Magnitude;
-                if (proj >= dist || dist <= Epsilon) return p1;
-                var ratio = proj / dist;
-                return p2 + (p1 - p2) * ratio;
+                var dist2 = (p2 - p1).Magnitude2;
+                if (proj >= dist2 || dist2 <= Epsilon)
+                {
+                    nearest = p1;
+                    return false;
+                }
+                nearest = p2 + (p1 - p2) * proj / dist2;
+                return false;
             }
         }
-        return p;
+        nearest = p;
+        return true;
     }
 
-    static bool IsConvex(Point2D p1, Point2D p2, Point2D p3)
+    public static bool IsConvex(Point2D p1, Point2D p2, Point2D p3)
     {
-        var tmp = (p3.Y - p1.Y) * (p2.X - p1.X) - (p3.X - p1.X) * (p2.Y - p1.Y);
-
-        if (tmp >= 0)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return Point2D.Cross(p3 - p1, p2 - p1) >= 0;
     }
 
 }

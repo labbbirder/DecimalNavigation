@@ -15,10 +15,6 @@ namespace DecimalNavigation
         [Tooltip("逻辑层帧率")]
         public int FramesPerSecond = 30;
         DecNavManager manager;
-        [Tooltip("勾选后在逻辑层拥有Y轴")]
-        public bool enableRidgeCutting = false;
-        [Tooltip("开启路径平滑")]
-        public bool enableCornerProbing = true;
         /// <summary>
         /// 逻辑层速度，每秒的行进逻辑距离
         /// </summary>
@@ -29,12 +25,12 @@ namespace DecimalNavigation
         /// <summary>
         /// 逻辑层的目的地
         /// </summary>
-        public Point3D destination { get; private set; }
+        public Point2D destination { get; private set; }
         /// <summary>
         /// 逻辑层的当前位置
         /// </summary>
-        public Point3D localtion { get; private set; }
-        public Path path;
+        public Point2D localtion { get; private set; }
+        public List<Point2D> path;
         private int coveredLength;
         // Start is called before the first frame update
         void Awake()
@@ -42,14 +38,15 @@ namespace DecimalNavigation
             manager = FindObjectOfType<DecNavManager>();
         }
 
-        public void SetDestination(Point3D dest)
+        public void SetDestination(Point2D dest)
         {
             destination = dest;
             coveredLength = 0;
-            manager.system.CalculatePath(localtion, destination, ref path, enableRidgeCutting, enableCornerProbing);
+            path.Clear();
+            manager.system.CalculatePath(localtion, destination, path);
         }
 
-        public void SetLocation(Point3D loc)
+        public void SetLocation(Point2D loc)
         {
             localtion = loc;
             destination = loc;
@@ -76,18 +73,18 @@ namespace DecimalNavigation
                 }
             if (updateTransform)
             {
-                var pos = localtion.ToVector3() / manager.navMesh.precision;
+                // var pos = localtion.ToVector3() / manager.navMesh.precision;
 
 
-                if (groundCast)
-                {
-                    RaycastHit hit;
-                    if (Physics.Raycast(new Ray(pos + Vector3.up * 9999, Vector3.down), out hit, 99999, LayerMask.GetMask("ground")))
-                    {
-                        pos.y = hit.point.y;
-                    }
-                }
-                transform.position = pos;
+                // if (groundCast)
+                // {
+                //     RaycastHit hit;
+                //     if (Physics.Raycast(new Ray(pos + Vector3.up * 9999, Vector3.down), out hit, 99999, LayerMask.GetMask("ground")))
+                //     {
+                //         pos.y = hit.point.y;
+                //     }
+                // }
+                // transform.position = pos;
             }
         }
         private void FixedUpdate()

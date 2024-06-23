@@ -38,6 +38,6 @@ namespace Jitter2.Collision
         /// <summary>
         /// The world bounding box of the entity.
         /// </summary>
-        AABB WorldBoundingBox { get; }
+        AABB2D WorldBoundingBox { get; }
     }
 }

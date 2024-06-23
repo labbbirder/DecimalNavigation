@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using DecimalNavigation;
 using UnityEngine.Assertions;
 
-using scalar = FixMath.NET.Fix64;
+using scalar = System.Int64;
 
 namespace com.bbbirder.Collections
 {
@@ -273,7 +274,7 @@ namespace com.bbbirder.Collections
 
     public static class OpenIntervalSetExtensions
     {
-        static readonly scalar EPSILON = scalar.One / 65536;
+        static readonly scalar EPSILON = FMath.Epsilon;
 
         /// <summary>
         /// 获取最小的等分粒度。如果不存在，返回-1

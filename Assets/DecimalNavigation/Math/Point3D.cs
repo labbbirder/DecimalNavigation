@@ -2,7 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using scalar = FixMath.NET.Fix64;
+using scalar = System.Int64;
 
 namespace DecimalNavigation
 {
@@ -14,9 +14,9 @@ namespace DecimalNavigation
     {
         [FieldOffset(0)]
         public scalar X;
-        [FieldOffset(scalar.SIZE_IN_BYTES)]
+        [FieldOffset(FMath.SIZE_IN_BYTES)]
         public scalar Y;
-        [FieldOffset(scalar.SIZE_IN_BYTES * 2)]
+        [FieldOffset(FMath.SIZE_IN_BYTES * 2)]
         public scalar Z;
 
         public static readonly Point3D Zero;
@@ -34,7 +34,7 @@ namespace DecimalNavigation
         public scalar Magnitude
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => scalar.Sqrt(Magnitude2);
+            get => FMath.Sqrt(Magnitude2);
         }
 
         public readonly scalar Magnitude2 => X * X + Y * Y + Z * Z;
@@ -50,7 +50,7 @@ namespace DecimalNavigation
                 }
                 else
                 {
-                    return this / scalar.Sqrt(mag2);
+                    return this / FMath.Sqrt(mag2);
                 }
             }
         }
@@ -96,8 +96,7 @@ namespace DecimalNavigation
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Point3D operator /(in Point3D p, scalar m)
         {
-            m = scalar.One / m;
-            return p * m;
+            return new Point3D(p.X / m, p.Y / m, p.Z / m);
         }
 
         public static Point3D operator *(scalar m, Point3D p)
@@ -107,12 +106,12 @@ namespace DecimalNavigation
 
         public static Point3D Min(in Point3D l, in Point3D r)
         {
-            return new(scalar.Min(l.X, r.X), scalar.Min(l.Y, r.Y), scalar.Min(l.Z, r.Z));
+            return new(FMath.Min(l.X, r.X), FMath.Min(l.Y, r.Y), FMath.Min(l.Z, r.Z));
         }
 
         public static Point3D Max(in Point3D l, in Point3D r)
         {
-            return new(scalar.Max(l.X, r.X), scalar.Max(l.Y, r.Y), scalar.Max(l.Z, r.Z));
+            return new(FMath.Max(l.X, r.X), FMath.Max(l.Y, r.Y), FMath.Max(l.Z, r.Z));
         }
 
         public static Point3D Cross(Point3D l, Point3D r)

@@ -49,7 +49,7 @@ namespace Jitter2.Collision
             public int Parent;
             public int Height;
 
-            public AABB ExpandedBox;
+            public AABB2D ExpandedBox;
             public T Proxy;
 
             public bool IsLeaf
@@ -134,7 +134,7 @@ namespace Jitter2.Collision
         /// Enumerates all axis-aligned bounding boxes in the tree.
         /// </summary>
         /// <param name="action">The action to perform on each bounding box and node height in the tree.</param>
-        public void EnumerateAll(Action<AABB, int> action)
+        public void EnumerateAll(Action<AABB2D, int> action)
         {
             if (root == -1) return;
             EnumerateAll(ref Nodes[root], action);
@@ -147,7 +147,7 @@ namespace Jitter2.Collision
         /// </summary>
         /// <param name="hits">A list to store the entities found within the bounding box.</param>
         /// <param name="aabb">The axis-aligned bounding box used for the query.</param>
-        public void Query(List<T> hits, in AABB aabb)
+        public void Query(List<T> hits, in AABB2D aabb)
         {
             stack ??= new Stack<int>(256);
 
@@ -249,7 +249,7 @@ namespace Jitter2.Collision
             return 1 + Math.Max(Height(ref Nodes[node.Left]), Height(ref Nodes[node.Right]));
         }
 
-        private void EnumerateAll(ref Node node, Action<AABB, int> action, int depth = 0)
+        private void EnumerateAll(ref Node node, Action<AABB2D, int> action, int depth = 0)
         {
             action(node.ExpandedBox, depth);
             if (node.IsLeaf) return;
@@ -260,7 +260,7 @@ namespace Jitter2.Collision
 
         private void InternalAddProxy(T proxy)
         {
-            AABB b = proxy.WorldBoundingBox;
+            AABB2D b = proxy.WorldBoundingBox;
 
             int index = AllocateNode();
 
@@ -311,7 +311,7 @@ namespace Jitter2.Collision
                     int left = Nodes[index].Left;
                     int rght = Nodes[index].Right;
 
-                    AABB.CreateMerged(Nodes[left].ExpandedBox, Nodes[rght].ExpandedBox, out Nodes[index].ExpandedBox);
+                    AABB2D.CreateMerged(Nodes[left].ExpandedBox, Nodes[rght].ExpandedBox, out Nodes[index].ExpandedBox);
                     Nodes[index].Height = 1 + Math.Max(Nodes[left].Height, Nodes[rght].Height);
                     index = Nodes[index].Parent;
                 }
@@ -324,7 +324,7 @@ namespace Jitter2.Collision
             }
         }
 
-        private static scalar MergedPerimeter(in AABB box1, in AABB box2)
+        private static scalar MergedPerimeter(in AABB2D box1, in AABB2D box2)
         {
             scalar a, b;
             scalar x, y;
@@ -357,7 +357,7 @@ namespace Jitter2.Collision
 
             // search for the best sibling
             // int sibling = root;
-            AABB nodeBox = Nodes[node].ExpandedBox;
+            AABB2D nodeBox = Nodes[node].ExpandedBox;
 
             int sibling = root;
 
@@ -437,7 +437,7 @@ namespace Jitter2.Collision
                 int lft = Nodes[index].Left;
                 int rgt = Nodes[index].Right;
 
-                AABB.CreateMerged(Nodes[lft].ExpandedBox, Nodes[rgt].ExpandedBox, out Nodes[index].ExpandedBox);
+                AABB2D.CreateMerged(Nodes[lft].ExpandedBox, Nodes[rgt].ExpandedBox, out Nodes[index].ExpandedBox);
                 Nodes[index].Height = 1 + Math.Max(Nodes[lft].Height, Nodes[rgt].Height);
                 index = Nodes[index].Parent;
             }

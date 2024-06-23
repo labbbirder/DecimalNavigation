@@ -33,7 +33,7 @@ public struct Segment : IEquatable<Segment>
 
     public override int GetHashCode()
     {
-        return ia * 322 + ib;
+        return ID.GetHashCode();
     }
 
     public unsafe static Segment FromPointer(Point2D* begin, Point2D* p1, Point2D* p2)

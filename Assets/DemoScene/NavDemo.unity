@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37311953, g: 0.38074014, b: 0.3587274, a: 1}
+  m_IndirectSpecularColor: {r: 0.3731193, g: 0.3807401, b: 0.358727, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -142,25 +142,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   navMesh: {fileID: 11400000, guid: ce72e208ad3721846841abac31b89e6d, type: 2}
---- !u!114 &62488924
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 62488920}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_OverrideArea: 0
-  m_Area: 0
-  m_OverrideGenerateLinks: 1
-  m_GenerateLinks: 1
-  m_IgnoreFromBuild: 0
-  m_ApplyToChildren: 1
-  m_AffectedAgents: ffffffff
 --- !u!1001 &563390629
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -257,26 +238,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 62488922}
-    - targetCorrespondingSourceObject: {fileID: 100000, guid: 9300cbaa09310854182bb0247d456d57,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 62488924}
-    - targetCorrespondingSourceObject: {fileID: 100002, guid: 9300cbaa09310854182bb0247d456d57,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1540361457}
-    - targetCorrespondingSourceObject: {fileID: 100004, guid: 9300cbaa09310854182bb0247d456d57,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1879181306}
     - targetCorrespondingSourceObject: {fileID: 100006, guid: 9300cbaa09310854182bb0247d456d57,
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 563390633}
-    - targetCorrespondingSourceObject: {fileID: 100006, guid: 9300cbaa09310854182bb0247d456d57,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 563390637}
   m_SourcePrefab: {fileID: 100100000, guid: 9300cbaa09310854182bb0247d456d57, type: 3}
 --- !u!1 &563390632 stripped
 GameObject:
@@ -306,25 +271,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: 9300cbaa09310854182bb0247d456d57, type: 3}
---- !u!114 &563390637
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 563390632}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_OverrideArea: 0
-  m_Area: 0
-  m_OverrideGenerateLinks: 1
-  m_GenerateLinks: 1
-  m_IgnoreFromBuild: 0
-  m_ApplyToChildren: 1
-  m_AffectedAgents: ffffffff
 --- !u!1 &590881617
 GameObject:
   m_ObjectHideFlags: 0
@@ -388,7 +334,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: f0f7846be672846628266f8b7e3cfcdd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -427,9 +373,9 @@ Transform:
   m_GameObject: {fileID: 590881617}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.17, y: 0.084, z: 3.21}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: -1.51, y: 0, z: 1.74}
+  m_LocalScale: {x: 0.34, y: 0.34, z: 0.34}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -445,6 +391,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2265c428a6bc0b0449c0077ba8936561, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  path: []
 --- !u!114 &590881624
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -458,10 +405,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FramesPerSecond: 30
-  enableRidgeCutting: 0
-  enableCornerProbing: 0
   speed: 400
   groundCast: 0
+  path: []
 --- !u!195 &590881625
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -544,8 +490,8 @@ Camera:
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
-  orthographic: 0
-  orthographic size: 5
+  orthographic: 1
+  orthographic size: 3.05
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -570,7 +516,7 @@ Transform:
   m_GameObject: {fileID: 901652070}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 5.39, z: 0}
+  m_LocalPosition: {x: 0, y: 10.1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -703,56 +649,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1540361455 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: 9300cbaa09310854182bb0247d456d57,
-    type: 3}
-  m_PrefabInstance: {fileID: 563390629}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1540361457
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1540361455}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_OverrideArea: 0
-  m_Area: 0
-  m_OverrideGenerateLinks: 1
-  m_GenerateLinks: 1
-  m_IgnoreFromBuild: 0
-  m_ApplyToChildren: 1
-  m_AffectedAgents: ffffffff
---- !u!1 &1879181304 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100004, guid: 9300cbaa09310854182bb0247d456d57,
-    type: 3}
-  m_PrefabInstance: {fileID: 563390629}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1879181306
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1879181304}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_OverrideArea: 0
-  m_Area: 0
-  m_OverrideGenerateLinks: 1
-  m_GenerateLinks: 1
-  m_IgnoreFromBuild: 0
-  m_ApplyToChildren: 1
-  m_AffectedAgents: ffffffff
 --- !u!1 &2033053533
 GameObject:
   m_ObjectHideFlags: 0

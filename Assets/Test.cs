@@ -14,17 +14,17 @@ public class Test : MonoBehaviour
     [ContextMenu("Go")]
     public void Do()
     {
-        range.Clear();
-        foreach (var item in inputs)
-        {
-            range.Union((FixMath.NET.Fix64)item.X, (FixMath.NET.Fix64)item.Y);
-        }
-        foreach (var item in substracts)
-        {
-            range.Substract(item.X, item.Y);
-        }
-        outputs = range.values;
-        range.GetMinGranularity();
+        // range.Clear();
+        // foreach (var item in inputs)
+        // {
+        //     range.Union((FixMath.NET.Fix64)item.X, (FixMath.NET.Fix64)item.Y);
+        // }
+        // foreach (var item in substracts)
+        // {
+        //     range.Substract(item.X, item.Y);
+        // }
+        // outputs = range.values;
+        // range.GetMinGranularity();
     }
     public void Update()
     {
