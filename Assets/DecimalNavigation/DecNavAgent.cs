@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using FixMath.NET;
 using UnityEngine;
 using UnityEngine.Profiling;
+using static DecimalNavigation.NavigationSystem;
 
 namespace DecimalNavigation
 {
@@ -13,10 +15,6 @@ namespace DecimalNavigation
         [Tooltip("逻辑层帧率")]
         public int FramesPerSecond = 30;
         DecNavManager manager;
-        [Tooltip("勾选后在逻辑层拥有Y轴")]
-        public bool enableRidgeCutting = false;
-        [Tooltip("开启路径平滑")]
-        public bool enableCornerProbing = true;
         /// <summary>
         /// 逻辑层速度，每秒的行进逻辑距离
         /// </summary>
@@ -27,12 +25,12 @@ namespace DecimalNavigation
         /// <summary>
         /// 逻辑层的目的地
         /// </summary>
-        public Point3D destination { get; private set; }
+        public Point2D destination { get; private set; }
         /// <summary>
         /// 逻辑层的当前位置
         /// </summary>
-        public Point3D localtion { get; private set; }
-        public Point3D[] path { get; private set; }
+        public Point2D localtion { get; private set; }
+        public List<Point2D> path;
         private int coveredLength;
         // Start is called before the first frame update
         void Awake()
@@ -40,22 +38,20 @@ namespace DecimalNavigation
             manager = FindObjectOfType<DecNavManager>();
         }
 
-        public void SetDestination(Point3D dest)
+        public void SetDestination(Point2D dest)
         {
             destination = dest;
             coveredLength = 0;
-            Profiler.BeginSample("my");
-            path =
-                manager.system.CalculatePath(localtion, destination, enableRidgeCutting, enableCornerProbing);
-            Profiler.EndSample();
+            path.Clear();
+            manager.system.CalculatePath(localtion, destination, path);
         }
 
-        public void SetLocation(Point3D loc)
+        public void SetLocation(Point2D loc)
         {
             localtion = loc;
             destination = loc;
             coveredLength = 0;
-            path = null;
+            path = new();
         }
         /// <summary>
         /// 每帧调用
@@ -63,11 +59,11 @@ namespace DecimalNavigation
         public void UpdateOnce(bool updateTransform = true)
         {
             coveredLength += speed / FramesPerSecond;
-            long len = 0;
-            if (path?.Length >= 2)
-                for (int i = 1; i < path.Length; i++)
+            Fix64 len = 0;
+            if (path.Count >= 2)
+                for (int i = 1; i < path.Count; i++)
                 {
-                    var secLen = (path[i] - path[i - 1]).magnitude;
+                    var secLen = (path[i] - path[i - 1]).Magnitude;
                     if (len + secLen > coveredLength)
                     {
                         localtion = path[i - 1] + (path[i] - path[i - 1]) * (coveredLength - len) / secLen;
@@ -77,19 +73,24 @@ namespace DecimalNavigation
                 }
             if (updateTransform)
             {
-                var pos = localtion.ToVector3() / manager.navMesh.precision;
+                var pos = ToV3(localtion);
 
 
                 if (groundCast)
                 {
                     RaycastHit hit;
-                    if (Physics.Raycast(new Ray(pos+Vector3.up*9999, Vector3.down), out hit,99999,LayerMask.GetMask("ground")))
+                    if (Physics.Raycast(new Ray(pos + Vector3.up * 9999, Vector3.down), out hit, 99999, LayerMask.GetMask("ground")))
                     {
-                        pos.y = hit.point.y ;
+                        pos.y = hit.point.y;
                     }
                 }
                 transform.position = pos;
             }
+        }
+
+        Vector3 ToV3(Point2D p2)
+        {
+            return new Vector3(p2.X, 0, p2.Y) / precision;
         }
         private void FixedUpdate()
         {
