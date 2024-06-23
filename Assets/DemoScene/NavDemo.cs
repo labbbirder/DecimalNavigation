@@ -58,7 +58,7 @@ public class NavDemo : MonoBehaviour
                 agent.SetDestination(p2);
 
                 path = agent.path;
-                print(path.Count);
+
                 Profiler.BeginSample("dec agent");
                 for (int i = 0; i < 1000; i++)
                 {
@@ -68,12 +68,12 @@ public class NavDemo : MonoBehaviour
 
                 var ua = GetComponent<NavMeshAgent>();
                 NavMeshPath up = new NavMeshPath();
-                Profiler.BeginSample("uni agent");
-                for (int i = 0; i < 1000; i++)
-                {
-                    ua.CalculatePath(p, up);
-                }
-                Profiler.EndSample();
+                // Profiler.BeginSample("uni agent");
+                // for (int i = 0; i < 1000; i++)
+                // {
+                //     ua.CalculatePath(p, up);
+                // }
+                // Profiler.EndSample();
             }
 
         }

@@ -286,7 +286,7 @@ namespace DecimalNavigation
                 var curAStar = curNode.aStarData;
                 if (curNode == to)
                 {
-                    Profiler.BeginSample("post ");
+                    // Profiler.BeginSample("post ");
                     while (curAStar.prev != null)
                     {
 
@@ -295,7 +295,7 @@ namespace DecimalNavigation
                     }
                     openList.Clear();
                     // npath.Add(curNode.aStarData.segment);
-                    Profiler.EndSample();
+                    // Profiler.EndSample();
                     return true;
                 }
 
@@ -303,7 +303,7 @@ namespace DecimalNavigation
                 curAStar.MoveToClosedList(s_ctxId);
 
 
-                Profiler.BeginSample("search surround ");
+                // Profiler.BeginSample("search surround ");
                 var nextNode = default(Polygon);
                 first = true;
                 foreach (var (seg, nb) in curNode.neighbors)
@@ -339,7 +339,7 @@ namespace DecimalNavigation
                     }
 
                 }
-                Profiler.EndSample();
+                // Profiler.EndSample();
                 curNode = nextNode;
                 // openList.RemoveAtSwapBack(0);
             }

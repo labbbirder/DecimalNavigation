@@ -73,19 +73,24 @@ namespace DecimalNavigation
                 }
             if (updateTransform)
             {
-                // var pos = localtion.ToVector3() / manager.navMesh.precision;
+                var pos = ToV3(localtion);
 
 
-                // if (groundCast)
-                // {
-                //     RaycastHit hit;
-                //     if (Physics.Raycast(new Ray(pos + Vector3.up * 9999, Vector3.down), out hit, 99999, LayerMask.GetMask("ground")))
-                //     {
-                //         pos.y = hit.point.y;
-                //     }
-                // }
-                // transform.position = pos;
+                if (groundCast)
+                {
+                    RaycastHit hit;
+                    if (Physics.Raycast(new Ray(pos + Vector3.up * 9999, Vector3.down), out hit, 99999, LayerMask.GetMask("ground")))
+                    {
+                        pos.y = hit.point.y;
+                    }
+                }
+                transform.position = pos;
             }
+        }
+
+        Vector3 ToV3(Point2D p2)
+        {
+            return new Vector3(p2.X, 0, p2.Y) / precision;
         }
         private void FixedUpdate()
         {
