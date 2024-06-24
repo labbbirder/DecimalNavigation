@@ -131,13 +131,16 @@ namespace DecimalNavigation
         public unsafe void SearchCorners(List<Segment> segments, Point2D pfrom, Point2D pto, List<Point2D> result)
         {
             int li = 0, ri = 0;
-            Point2D vl = Point2D.Zero, vr = Point2D.Zero, p = pfrom;
+            Point2D vl = Point2D.Zero,
+                    vr = Point2D.Zero,
+                    p = pfrom;
             bool newp = true;
+
             result.Add(pfrom);
 
             for (int i = 0; i <= segments.Count; i++)
             {
-                Point2D nvl = default, nvr = default;
+                Point2D nvl, nvr;
                 if (i == segments.Count)
                 {
                     nvr =
@@ -152,7 +155,9 @@ namespace DecimalNavigation
                     nvr = npr - p;
                 }
 
-                // result.Add((npl + npr) / 2);
+                if (nvl.Magnitude2 == 0 || nvr.Magnitude2 == 0) continue;
+
+                // result.Add((nvl + p + nvr + p) / 2);
                 // continue;
 
                 if (Point2D.Cross(nvr, nvl) < 0)
@@ -169,19 +174,21 @@ namespace DecimalNavigation
                     continue;
                 }
 
-                if (Point2D.Cross(nvl, vr) > 0)
+                if (Point2D.Cross(nvl, vr) >= 0)
                 {
                     result.Add(p = p + vr);
                     newp = true;
                     i = ri;
+                    // Debug.Log($"get right {ri}");
                     continue;
                 }
 
-                if (Point2D.Cross(vl, nvr) > 0)
+                if (Point2D.Cross(vl, nvr) >= 0)
                 {
                     result.Add(p = p + vl);
                     newp = true;
                     i = li;
+                    // Debug.Log($"get left {li}");
                     continue;
                 }
 
@@ -189,12 +196,14 @@ namespace DecimalNavigation
                 {
                     vl = nvl;
                     li = i;
+                    // Debug.Log($"narrow left {i}");
                 }
 
                 if (Point2D.Cross(vr, nvr) >= 0)
                 {
                     vr = nvr;
                     ri = i;
+                    // Debug.Log($"narrow right {i}");
                 }
             }
             result.Add(pto);
