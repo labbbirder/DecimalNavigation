@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using DecimalNavigation;
@@ -204,22 +202,5 @@ public unsafe class NormalizedNavmeshAsset : ScriptableObject
         return default;
 #endif
     }
-    //private int[] calculateEdges()
-    //{
-    //    for (int i = 0; i < ; i++)
-    //    {
-
-    //    }
-    //}
 
 }
-
-/*
-TODO LIST:
-    - 1. Vector to Point
-    - 2. Triangles to Polygons
-    3. Polygons to AStarNodes
-    4. AStarNode Search
-    5. Corner Search
-    6. Nearest Point Search
-*/

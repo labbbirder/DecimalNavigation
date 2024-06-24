@@ -155,7 +155,7 @@ namespace DecimalNavigation
                     nvr = npr - p;
                 }
 
-                if (nvl.Magnitude2 == 0 || nvr.Magnitude2 == 0) continue;
+                if (nvl == Point2D.Zero || nvr == Point2D.Zero) continue;
 
                 // result.Add((nvl + p + nvr + p) / 2);
                 // continue;

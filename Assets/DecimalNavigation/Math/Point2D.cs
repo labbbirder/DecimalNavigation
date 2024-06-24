@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using scalar = System.Int64;
@@ -48,40 +49,56 @@ namespace DecimalNavigation
             X = (scalar)v.x;
             Y = (scalar)v.y;
         }
-        public static Point2D operator -(Point2D l)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Point2D operator -(in Point2D l)
         {
             return new Point2D(-l.X, -l.Y);
         }
-        public static Point2D operator -(Point2D l, Point2D r)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Point2D operator -(in Point2D l, in Point2D r)
         {
             return new Point2D(l.X - r.X, l.Y - r.Y);
         }
-        public static Point2D operator +(Point2D l, Point2D r)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Point2D operator +(in Point2D l, in Point2D r)
         {
             return new Point2D(l.X + r.X, l.Y + r.Y);
         }
-        public static Point2D operator *(Point2D p, scalar m)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Point2D operator *(in Point2D p, in scalar m)
         {
             return new Point2D(p.X * m, p.Y * m);
         }
-        public static Point2D operator /(Point2D p, scalar m)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Point2D operator /(in Point2D p, in scalar m)
         {
             return new Point2D(p.X / m, p.Y / m);
         }
-        public static Point2D operator *(scalar m, Point2D p)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Point2D operator *(scalar m, in Point2D p)
         {
             return p * m;
         }
 
-        public static bool operator ==(Point2D lhs, Point2D rhs)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(in Point2D lhs, in Point2D rhs)
         {
             return rhs.X == lhs.X && rhs.Y == lhs.Y;
         }
-        public static bool operator !=(Point2D lhs, Point2D rhs)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(in Point2D lhs, in Point2D rhs)
         {
             return !(lhs == rhs);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator Point2D(Vector2 v)
         {
             return new((scalar)v.x, (scalar)v.y);
@@ -104,23 +121,31 @@ namespace DecimalNavigation
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Point2D Min(in Point2D l, in Point2D r)
         {
             return new(FMath.Min(l.X, r.X), FMath.Min(l.Y, r.Y));
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Point2D Max(in Point2D l, in Point2D r)
         {
             return new(FMath.Max(l.X, r.X), FMath.Max(l.Y, r.Y));
         }
-        public static scalar Cross(Point2D l, Point2D r)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static scalar Cross(in Point2D l, in Point2D r)
         {
             return l.X * r.Y - r.X * l.Y;
         }
+
         public static scalar Cross_XZ(Point3D l, Point3D r)
         {
             return l.X * r.Z - r.X * l.Z;
         }
-        public static scalar Dot(Point2D l, Point2D r)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static scalar Dot(in Point2D l, in Point2D r)
         {
             return l.X * r.X + l.Y * r.Y;
         }
@@ -129,6 +154,7 @@ namespace DecimalNavigation
             return "Vector2:" + X + "," + Y;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(Point2D other)
         {
             return X == other.X && Y == other.Y;
